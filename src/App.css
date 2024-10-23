@@ -40,3 +40,184 @@
 .read-the-docs {
   color: #888;
 }
+
+/* Updated Chat Interface Styles */
+.app-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.main-content {
+  width: 100%;
+}
+
+
+.messages-container {
+  flex-grow: 1;
+  overflow-y: auto;
+  margin-bottom: 20px;
+  padding: 10px;
+}
+
+.message {
+  margin: 10px 0;
+  padding: 10px 15px;
+  border-radius: 8px;
+  max-width: 80%;
+  word-wrap: break-word;
+}
+
+.bot-message {
+  background: rgba(100, 108, 255, 0.08);
+  margin-right: auto;
+  text-align: left;
+}
+
+.user-message {
+  background: rgba(100, 108, 255, 0.15);
+  margin-left: auto;
+  text-align: right;
+}
+
+.input-container {
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+.chat-input {
+  flex-grow: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(100, 108, 255, 0.2);
+  background: transparent;
+  color: inherit;
+  font-size: 1em;
+}
+
+.chat-input:focus {
+  outline: none;
+  border-color: #646cff;
+}
+
+.send-button {
+  padding: 10px 20px;
+  border-radius: 8px;
+  background: #646cff;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  font-size: 1em;
+}
+
+.send-button:hover {
+  background: #535bf2;
+}
+
+.send-button:active {
+  transform: translateY(1px);
+}
+
+.chat-map-container {
+  display: flex;
+  gap: 20px;
+  height: calc(100vh - 200px);
+  min-height: 500px;
+}
+
+.chat-container {
+  flex: 0.2; /* Reduced to make chat narrower */
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.map-container {
+  flex: 0.95; /* Increased to make map wider */
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.map-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* This maintains aspect ratio */
+  border-radius: 4px;
+  image-rendering: crisp-edges; /* Helps with image clarity */
+  image-rendering: -webkit-optimize-contrast; /* Better image clarity for webkit browsers */
+}
+
+.map-image:hover {
+  transform: scale(1.02);
+}
+
+/* Scrollbar Styling */
+.messages-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.messages-container::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.messages-container::-webkit-scrollbar-thumb {
+  background: rgba(100, 108, 255, 0.3);
+  border-radius: 4px;
+}
+
+.messages-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 108, 255, 0.5);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .chat-map-container {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .map-container {
+    height: 500px; /* Increased height on mobile */
+    margin-top: 20px;
+  }
+
+  .input-container {
+    padding: 10px 0;
+  }
+
+  .chat-input {
+    font-size: 16px; /* Prevents zoom on mobile */
+  }
+
+  .message {
+    max-width: 90%;
+  }
+}
+
+/* Dark mode enhancements */
+@media (prefers-color-scheme: dark) {
+  .chat-container,
+  .map-container {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .bot-message {
+    background: rgba(100, 108, 255, 0.15);
+  }
+
+  .user-message {
+    background: rgba(100, 108, 255, 0.25);
+  }
+}

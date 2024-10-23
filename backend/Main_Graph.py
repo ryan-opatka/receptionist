@@ -179,16 +179,67 @@ class ReceptionistSystem:
         return None
 
     def get_directions(self, start, goal):
-        """Generate natural language directions between two points"""
         try:
             path = nx.shortest_path(self.nx_graph, start, goal, weight="weight")
             
             directions = []
             for i in range(len(path) - 1):
-                current = self.floor_plan["nodes"][path[i]]["label"]
-                next_stop = self.floor_plan["nodes"][path[i + 1]]["label"]
-                directions.append(f"Go from {current} to {next_stop}")
+                current_node = self.floor_plan["nodes"][path[i]]
+                next_node = self.floor_plan["nodes"][path[i + 1]]
                 
+                # Calculate relative position (left/right/ahead)
+                dx = next_node["x"] - current_node["x"]
+                dy = next_node["y"] - current_node["y"]
+                
+                # Get current and next location names
+                current_name = current_node["label"]
+                next_name = next_node["label"]
+                
+                # Generate direction based on relative positions
+                if abs(dx) > abs(dy):  # Primarily east-west movement
+                    if dx > 0:
+                        if dy > 20:  # Slightly north
+                            directions.append(f"From {current_name}, head east and slightly to your right to reach {next_name}")
+                        elif dy < -20:  # Slightly south
+                            directions.append(f"From {current_name}, head east and slightly to your left to reach {next_name}")
+                        else:
+                            directions.append(f"From {current_name}, continue straight east along the hallway to reach {next_name}")
+                    else:
+                        if dy > 20:  # Slightly north
+                            directions.append(f"From {current_name}, head west and slightly to your right to reach {next_name}")
+                        elif dy < -20:  # Slightly south
+                            directions.append(f"From {current_name}, head west and slightly to your left to reach {next_name}")
+                        else:
+                            directions.append(f"From {current_name}, continue straight west along the hallway to reach {next_name}")
+                else:  # Primarily north-south movement
+                    if dy > 0:
+                        if dx > 20:  # Slightly east
+                            directions.append(f"From {current_name}, turn right and head north to reach {next_name}")
+                        elif dx < -20:  # Slightly west
+                            directions.append(f"From {current_name}, turn left and head north to reach {next_name}")
+                        else:
+                            directions.append(f"From {current_name}, head straight north to reach {next_name}")
+                    else:
+                        if dx > 20:  # Slightly east
+                            directions.append(f"From {current_name}, turn right and head south to reach {next_name}")
+                        elif dx < -20:  # Slightly west
+                            directions.append(f"From {current_name}, turn left and head south to reach {next_name}")
+                        else:
+                            directions.append(f"From {current_name}, head straight south to reach {next_name}")
+
+                # Add additional context for specific locations
+                if next_name == "1 South Collaborative Study Area":
+                    directions.append("Look for the large '1South' sign above the entrance")
+                elif "Project Room" in next_name:
+                    if "A" in next_name:
+                        directions.append("Project Room A is located in the southeast corner of 1South")
+                    else:
+                        directions.append("Project Room B is located in the southwest corner of 1South")
+                elif next_name == "To Café Bergson":
+                    directions.append("Look for the staircase on your right leading up")
+                elif next_name == "To Lower Level":
+                    directions.append("Look for the staircase on your left leading down")
+
             return directions
         except nx.NetworkXNoPath:
             return ["No path found between these locations."]
@@ -202,7 +253,6 @@ class ReceptionistSystem:
             self.floor_plan["nodes"][room_id]["color"] = "red"
 
     def process_query(self, query):
-        """Process a user query and return directions and visualization"""
         destination = self.find_closest_room_match(query)
         
         if not destination:
@@ -214,7 +264,12 @@ class ReceptionistSystem:
         path = nx.shortest_path(self.nx_graph, "mainEntrance", destination)
         self.visualize_map(highlight_path=path)
         
-        return "\n".join(directions)
+        # Format the directions nicely with step numbers
+        numbered_directions = []
+        for i, direction in enumerate(directions, 1):
+            numbered_directions.append(f"{i}. {direction}")
+        
+        return "\n".join(numbered_directions)
 
 # Example usage
 if __name__ == "__main__":
