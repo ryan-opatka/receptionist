@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+#pycache
+__pycache__
+
 #API_Keys
 .env
 

@@ -55,7 +55,13 @@ function App() {
                   key={index} 
                   className={`message ${msg.isBot ? 'bot-message' : 'user-message'}`}
                 >
-                  <p>{msg.text}</p>
+                  {msg.isBot ? (
+                    msg.text.split('\n').map((line, i) => (
+                      <p key={i}>{line}</p>
+                    ))
+                  ) : (
+                    <p>{msg.text}</p>
+                  )}
                 </div>
               ))}
             </div>
