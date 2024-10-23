@@ -5,16 +5,15 @@ function App() {
   const [input, setInput] = useState('');
   const [messages, setMessages] = useState([{ text: 'Where are you going?', isBot: true }]);
   const [currentMapImage, setCurrentMapImage] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleSendMessage = async () => {
     if (input.trim() === '') return;
 
-    // Add user's message to the chat
     const userMessage = { text: input, isBot: false };
     setMessages((prevMessages) => [...prevMessages, userMessage]);
 
     try {
-      // Send user input to the backend
       const response = await fetch('http://localhost:5000/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -22,13 +21,11 @@ function App() {
       });
 
       const data = await response.json();
-      console.log('Backend response:', data);  // Debugging log
+      console.log('Backend response:', data);
 
-      // Add the bot's response to the chat
       const botMessage = { text: data.response, isBot: true };
       setMessages((prevMessages) => [...prevMessages, botMessage]);
 
-      // Update the map image if one is provided
       if (data.map_image) {
         setCurrentMapImage(data.map_image);
       }
@@ -36,7 +33,6 @@ function App() {
       console.error('Error fetching from backend:', error);
     }
 
-    // Clear the input field
     setInput('');
   };
 
@@ -51,9 +47,7 @@ function App() {
       <h1>Receptionist</h1>
       
       <div className="main-content">
-        {/* Chat and Map Container */}
         <div className="chat-map-container">
-          {/* Chat Messages */}
           <div className="chat-container">
             <div className="messages-container">
               {messages.map((msg, index) => (
@@ -66,7 +60,6 @@ function App() {
               ))}
             </div>
             
-            {/* Input Area */}
             <div className="input-container">
               <input
                 type="text"
@@ -82,18 +75,37 @@ function App() {
             </div>
           </div>
 
-          {/* Map Visualization */}
           <div className="map-container">
             {currentMapImage && (
               <img
                 src={`data:image/png;base64,${currentMapImage}`}
                 alt="Map visualization"
                 className="map-image"
+                onClick={() => setIsModalOpen(true)}
               />
             )}
           </div>
         </div>
       </div>
+
+      {/* Modal */}
+      {isModalOpen && currentMapImage && (
+        <div className="modal-overlay" onClick={() => setIsModalOpen(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <button 
+              className="modal-close" 
+              onClick={() => setIsModalOpen(false)}
+            >
+              ×
+            </button>
+            <img
+              src={`data:image/png;base64,${currentMapImage}`}
+              alt="Map visualization (large)"
+              className="modal-image"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

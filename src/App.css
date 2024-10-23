@@ -52,7 +52,6 @@
   width: 100%;
 }
 
-
 .messages-container {
   flex-grow: 1;
   overflow-y: auto;
@@ -130,7 +129,7 @@
 }
 
 .chat-container {
-  flex: 0.2; /* Reduced to make chat narrower */
+  flex: 0.2;
   display: flex;
   flex-direction: column;
   background: rgba(255, 255, 255, 0.05);
@@ -139,7 +138,7 @@
 }
 
 .map-container {
-  flex: 0.95; /* Increased to make map wider */
+  flex: 0.95;
   background: rgba(255, 255, 255, 0.05);
   border-radius: 8px;
   padding: 20px;
@@ -152,14 +151,82 @@
 .map-image {
   width: 100%;
   height: 100%;
-  object-fit: contain; /* This maintains aspect ratio */
+  object-fit: contain;
   border-radius: 4px;
-  image-rendering: crisp-edges; /* Helps with image clarity */
-  image-rendering: -webkit-optimize-contrast; /* Better image clarity for webkit browsers */
+  image-rendering: crisp-edges;
+  image-rendering: -webkit-optimize-contrast;
+  cursor: pointer;
+  transition: transform 0.2s ease;
 }
 
 .map-image:hover {
   transform: scale(1.02);
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  cursor: pointer;
+}
+
+.modal-content {
+  background: rgba(30, 30, 30, 0.95);
+  padding: 20px;
+  border-radius: 12px;
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  cursor: default;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  animation: modalFadeIn 0.2s ease-out;
+}
+
+.modal-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 24px;
+  color: white;
+  z-index: 1001;
+}
+
+.modal-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.modal-image {
+  max-width: 85vw;
+  max-height: 85vh;
+  object-fit: contain;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 /* Scrollbar Styling */
@@ -189,7 +256,7 @@
   }
 
   .map-container {
-    height: 500px; /* Increased height on mobile */
+    height: 500px;
     margin-top: 20px;
   }
 
@@ -198,11 +265,22 @@
   }
 
   .chat-input {
-    font-size: 16px; /* Prevents zoom on mobile */
+    font-size: 16px;
   }
 
   .message {
     max-width: 90%;
+  }
+
+  .modal-content {
+    width: 95vw;
+    height: 95vh;
+    padding: 10px;
+  }
+
+  .modal-image {
+    max-width: 95vw;
+    max-height: 90vh;
   }
 }
 
@@ -219,5 +297,9 @@
 
   .user-message {
     background: rgba(100, 108, 255, 0.25);
+  }
+
+  .modal-content {
+    background: rgba(20, 20, 20, 0.95);
   }
 }
