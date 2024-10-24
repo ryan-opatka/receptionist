@@ -127,7 +127,7 @@ function App() {
 
   return (
     <div className="app-container">
-      <h1>Northwestern University Library Assistant</h1>
+      <h1> &nbsp;📚 Northwestern University Library Assistant &nbsp;🗺️ </h1>
       
       <div className="chat-fullscreen">
         <div className="messages-container">
