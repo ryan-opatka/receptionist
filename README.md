@@ -1,135 +1,228 @@
-# Receptionist Chatbot App
+# Receptionist
 
 ## Overview
 
-The Receptionist app is a simple chatbot built using a React frontend and a Flask backend. The app starts by asking the user, "Where are you going?" and takes the user's input to send it to a Python script (answer.py). The script processes the input and returns a response, which is displayed back to the user along with a happy emoji.
+The Receptionist app is an intelligent chatbot that serves Northwestern University Library visitors. Built with a React frontend and Flask backend, it automatically understands and responds to two types of queries:
+1. Providing directions within the library building using a graph-based pathfinding system
+2. Answering questions about library information, services, and resources using a RAG (Retrieval-Augmented Generation) model
 
-This project is based on a React + Vite template for fast development, using modern JavaScript tooling, and it includes a Flask backend for handling API requests.
+The project uses Vite for fast development with modern JavaScript tooling, NLTK for natural language processing, and includes comprehensive library information retrieval capabilities.
 
 ## Project Structure
 
+```
 receptionist/
 ├── backend/
-│   └── answer.py               # Flask backend that handles chatbot logic
+│   ├── answer.py               # Flask backend with routing and intent classification
+│   ├── Main_Graph.py          # Graph-based pathfinding for directions
+│   ├── library_rag.py         # RAG model for library information
+│   └── library_data/          # Library information database
 ├── public/                     # React public files
 ├── src/
-│   └── App.jsx                 # React app where UI and fetch requests are handled
-├── package.json                # React dependencies and scripts
-├── vite.config.js              # Vite configuration for the React app
-├── README.md                   # Project documentation
-└── .gitignore                  # Git ignore configuration
+│   ├── App.jsx                # Main React component
+│   └── App.css                # Application styles
+├── package.json               # React dependencies
+├── vite.config.js             # Vite configuration
+└── README.md                  # Documentation
+```
 
-### Frontend: React + Vite
+## Installation
 
-This project uses Vite, a fast build tool that provides Hot Module Replacement (HMR) for a smooth developer experience. The React frontend is a minimal setup that is easy to expand and customize.
+### Prerequisites
 
-The Vite template used for this project is based on the following plugins:
-- @vitejs/plugin-react which uses Babel for fast refresh during development.
-- @vitejs/plugin-react-swc which uses SWC for fast refresh as well.
-
-### Backend: Flask API
-
-The Flask backend serves an API that accepts user input and returns a processed response.
-
-- answer.py: This file defines a simple Flask server. It exposes a /api/chat route where POST requests containing the user's message are handled. The server repeats the message back to the user, appending a happy emoji (😊).
+Download and install these tools first:
+- Node.js & npm: [https://nodejs.org/](https://nodejs.org/)
+- Python 3.8+: [https://www.python.org/](https://www.python.org/)
+- Git: [https://git-scm.com/](https://git-scm.com/)
 
 ### Setup Instructions
 
-#### Prerequisites
+1. **Clone the Repository**:
+```bash
+git clone [repository-url]
+cd receptionist
+```
 
-- Node.js: Install from https://nodejs.org/.
-- Python: Install from https://www.python.org/.
+2. **Frontend Setup**:
+```bash
+# Install all frontend dependencies
+npm install
+```
 
-### Running the Project
+3. **Backend Setup**:
 
-1. Install Frontend Dependencies:
+Virtual Environment (Recommended but Optional):
+```bash
+# Create and activate virtual environment
+python -m venv venv
 
-   In the project root directory (receptionist/), run:
+# Activate on Windows:
+venv\Scripts\activate
 
-   npm install
+# Activate on Unix/macOS:
+source venv/bin/activate
+```
 
-2. Start the React Frontend:
+Why use a virtual environment? (not necessary, recommended.)
+- Isolates project dependencies from system Python
+- Prevents conflicts between different project requirements
+- Makes project more portable and reproducible
+- Easier to manage package versions
+- Simple to recreate the environment on other machines
 
-   Run the following command in the root directory:
+Install Dependencies:
+```bash
+# Install all required packages (with or without venv)
+pip install Flask flask-cors nltk networkx matplotlib openai langchain chromadb tiktoken sqlalchemy python-dotenv
 
-   npm run dev
+# Download required NLTK data
+python -c "import nltk; nltk.download('punkt'); nltk.download('averaged_perceptron_tagger'); nltk.download('stopwords')"
+```
 
-   This will start the React app at http://localhost:5173.
+4. **Environment Setup**:
+Create a `.env` file in the backend directory:
+```bash
+OPENAI_API_KEY=your_api_key_here
+```
 
-3. Set Up and Run the Flask Backend:
+### Starting the Application
 
-   Navigate to the backend/ directory and install Flask and the flask-cors package:
+1. **Start the Frontend**:
+```bash
+npm run dev
+# Runs on http://localhost:5173
+```
 
-   cd backend
-   pip install Flask flask-cors
+2. **Start the Backend**:
+```bash
+cd backend
+python answer.py
+# Runs on http://localhost:5000
+```
 
-   Then, run the Flask server:
+## Features
 
-   python answer.py
+- **Automatic Query Classification**: Uses NLTK to understand whether users need directions or information
+- **Interactive Map**: Visual guidance for directions with clickable interface
+- **Library Information**: Comprehensive answers with source citations
+- **Context-Aware**: Maintains conversation context for natural interactions
+- **Rich Text Responses**: Includes clickable links and formatted text
+- **Responsive Design**: Works on all screen sizes
+- **Hot Module Replacement**: Fast development with Vite
+- **Error Handling**: Graceful error management and user feedback
 
-   The Flask backend will run on http://localhost:5000.
+## Usage Examples
 
-### Modifying the Chatbot Logic
+1. **Direction Queries**:
+```
+"Where is room 101?"
+"How do I get to the study area?"
+"Find the computer lab"
+```
 
-To modify the chatbot's response behavior, edit the answer.py file.
+2. **Information Queries**:
+```
+"What are the library hours?"
+"Tell me about printing services"
+"How do I reserve a study room?"
+```
 
-1. Locate the /api/chat endpoint in answer.py:
+The system automatically determines query type and provides appropriate responses, including:
+- Step-by-step directions with interactive maps
+- Detailed information with source citations
+- Clickable links to relevant resources
 
-   This endpoint processes the user input and returns a response. The current functionality repeats the user's message and adds a happy emoji.
+## Troubleshooting
 
-   @app.route('/api/chat', methods=['POST'])
-   def chat():
-       data = request.json
-       user_response = data.get('message')
-       
-       # Modify this logic to change the chatbot's behavior
-       response = f"You said: {user_response} 😊"
-       
-       return jsonify({'response': response})
+1. **Installation Issues**:
+```bash
+# Clear npm cache and reinstall
+npm cache clean --force
+rm -rf node_modules
+npm install
 
-2. Modify the Response Logic:
+# Recreate Python environment
+deactivate  # if using venv
+pip install -r requirements.txt
+```
 
-   You can modify the logic in the chat() function to handle more complex responses. For example, you can add conditional statements, interact with other APIs, or add natural language processing (NLP) to generate more meaningful replies.
+2. **CORS Issues**: 
+- Verify flask-cors is installed
+- Check CORS configuration in answer.py
+- Ensure both servers are running
 
-   Example modification:
+3. **Connection Problems**:
+- Frontend should be on http://localhost:5173
+- Backend should be on http://localhost:5000
+- Check if ports are available
 
-   @app.route('/api/chat', methods=['POST'])
-   def chat():
-       data = request.json
-       user_response = data.get('message')
+4. **Dependencies Issues**:
+```bash
+# Update all dependencies
+npm update  # for frontend
+pip install --upgrade -r requirements.txt  # for backend
+```
 
-       # Custom logic to modify response
-       if "work" in user_response.lower():
-           response = "You're heading to work! 🚀"
-       else:
-           response = f"You said: {user_response} 😊"
+## Development
 
-       return jsonify({'response': response})
+### Frontend Development
+The React frontend uses Vite for:
+- Hot Module Replacement (HMR)
+- Fast refresh during development
+- Optimized builds
 
-### CORS Configuration
+```bash
+# Development with HMR
+npm run dev
 
-The app uses Flask-CORS to handle Cross-Origin Resource Sharing (CORS) between the React frontend and Flask backend. This is set up in answer.py like so:
+# Production build
+npm run build
+```
 
-from flask_cors import CORS
+### Backend Development
+The Flask backend supports:
+- API routing
+- NLTK processing
+- Map generation
+- RAG model integration
 
-app = Flask(__name__)
-CORS(app)  # Enables CORS for all routes
+```bash
+# Run with debug mode
+export FLASK_ENV=development  # Unix/macOS
+set FLASK_ENV=development    # Windows
+python answer.py
+```
 
-### Vite + React Setup
+## API Documentation
 
-This project is scaffolded using Vite, a next-generation frontend tooling that offers superior speed in development.
+### POST /api/chat
+Accepts JSON with:
+```json
+{
+  "message": "user query string",
+  "chat_history": [
+    {
+      "question": "previous question",
+      "answer": "previous answer",
+      "intent": "previous intent"
+    }
+  ]
+}
+```
 
-- Hot Module Replacement (HMR): Vite automatically updates changes in your React components without reloading the page.
-- ESLint Configuration: The project includes basic ESLint rules for linting your code.
+Returns:
+```json
+{
+  "response": "bot response string",
+  "map_image": "base64 encoded image (optional)",
+  "intent": "classified intent"
+}
+```
 
-To modify the frontend, edit the src/ directory where the React components are located. For example, App.jsx is the main file handling the user interface and API requests.
-
-### Troubleshooting
-
-1. CORS Errors: If you encounter CORS-related issues, ensure that flask-cors is installed and that CORS(app) is present in answer.py.
-2. Backend Not Running: Ensure that the Flask backend is running by checking http://localhost:5000 in your browser or terminal.
-3. Frontend Issues: If the frontend doesn’t load, ensure that npm run dev is running and visit http://localhost:5173.
-
-### License
+## License
 
 This project is open source and available under the MIT License.
+
+## Contributors
+
+Please check the project contributors page for a list of developers who have contributed to this project.
