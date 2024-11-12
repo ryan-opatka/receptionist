@@ -184,8 +184,11 @@ class LibraryRAG:
             {question}
             
             If the information isn't available in the provided context, please say so.
-            Include relevant details like contact information, hours, or URLs when available.
-            Be concise but informative.
+            Include relevant details like contact information, or hours.
+            Be very very concise an only include the most directly relevant and informative information.
+            If you need more context, please ask for it. 
+            You are required to ask clarifying questions, especially if the user query is vague. 
+            You should ALWAYS ask a question of some sort at the end of your answer, even if it is just to ask if they would like help with anything else.
             """
             
             # Get response

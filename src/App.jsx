@@ -37,6 +37,17 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
+  // List of queries to pre-fill the input box for the first four prompts
+  const prefilledQueries = [
+    "Who do I contact if I need help finding materials?",
+    "Where do I go to find 1 South?",
+    "What can you tell me about computers at University Library?",
+    "Great. Where do I go to get to information commons?",
+    "How do I get to Cafe Bergson?"
+  ];
+
+  const [autoPopulatedIndex, setAutoPopulatedIndex] = useState(0);
+
   // Auto-scroll to bottom when messages update
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -45,6 +56,13 @@ function App() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Automatically populate the chat message bar for the first 4 prompts
+  useEffect(() => {
+    if (autoPopulatedIndex < prefilledQueries.length) {
+      setInput(prefilledQueries[autoPopulatedIndex]);
+    }
+  }, [autoPopulatedIndex]);
 
   // Handle message submission
   const handleSendMessage = async () => {
@@ -108,6 +126,7 @@ function App() {
     } finally {
       setIsLoading(false);
       setInput('');
+      setAutoPopulatedIndex((prevIndex) => prevIndex + 1); // Move to next query after sending the current one
     }
   };
 
@@ -127,7 +146,7 @@ function App() {
 
   return (
     <div className="app-container">
-      <h1> &nbsp;📚 Northwestern University Library Assistant &nbsp;🗺️ </h1>
+      <h1> &nbsp;📚 University Library Receptionist &nbsp;🗺️ </h1>
       
       <div className="chat-fullscreen">
         <div className="messages-container">
