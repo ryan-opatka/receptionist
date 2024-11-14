@@ -41,9 +41,7 @@ function App() {
   const prefilledQueries = [
     "Who do I contact if I need help finding materials?",
     "Where do I go to find 1 South?",
-    "What can you tell me about computers at University Library?",
-    "Great. Where do I go to get to information commons?",
-    "How do I get to Cafe Bergson?"
+    "Great. Where do I go to get to information commons?"
   ];
 
   const [autoPopulatedIndex, setAutoPopulatedIndex] = useState(0);

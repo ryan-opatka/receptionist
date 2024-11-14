@@ -148,7 +148,7 @@ class LibraryRAG:
                 
             llm = ChatOpenAI(
                 temperature=0,
-                model_name="gpt-3.5-turbo"
+                model_name="gpt-4o"
             )
             
             self.qa_chain = ConversationalRetrievalChain.from_llm(
@@ -180,15 +180,18 @@ class LibraryRAG:
         try:
             # Create a library-specific prompt
             formatted_question = f"""
-            Based on the Northwestern University Library information provided, please answer the following question:
+            Hello! Based on the Northwestern University Library information provided, please answer the following question:
             {question}
             
             If the information isn't available in the provided context, please say so.
             Include relevant details like contact information, or hours.
-            Be very very concise an only include the most directly relevant and informative information.
-            If you need more context, please ask for it. 
-            You are required to ask clarifying questions, especially if the user query is vague. 
-            You should ALWAYS ask a question of some sort at the end of your answer, even if it is just to ask if they would like help with anything else.
+            Be VERY VERY concise an only include the most directly relevant and informative information. 3-4 sentencesAT MOST.
+            If you need more context, please ask for it. I STRESS THIS.
+            DO NOT INCLUDE INFO ABOUT ANY LIBRARY OTHER THAN MAIN UNIVERSITY LIBRARY.
+            You are required to ask clarifying questions, ESPECIALLY if the user query is vague. 
+            You should ALWAYS ALWAYS ask a question of some sort at the end of your answer, even if it is just to ask if they would like help with anything else.
+            ALWAYS ASK CLARIFICATION QUESTIONS IF THE USER QUERY IS VAGUE.
+            YOUR QUESTIONS SHOULD ONLY BE EXTREMELY RELEVANT TO THE USER QUERY.
             """
             
             # Get response
