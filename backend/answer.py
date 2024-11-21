@@ -23,7 +23,38 @@ logging.basicConfig(level=logging.INFO,
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/api/*": {"origins": "http://localhost:5173"}}, 
+     allow_headers=["Content-Type", "Authorization"], 
+     methods=["GET", "POST", "OPTIONS"])
+
+# @app.before_request
+# def handle_options():
+#     response = app.make_default_options_response()
+#     headers = response.headers
+
+#     headers["Access-Control-Allow-Origin"] = "http://localhost:5173"
+#     headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+#     headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+#     headers["Access-Control-Allow-Credentials"] = "true"
+
+#     return response
+
+
+# CORS(app, origins=["http://localhost:5173"], methods=["GET", "POST", "OPTIONS"],
+#      supports_credentials=True, allow_headers=["Content-Type", "Authorization"])
+
+# @app.before_request
+# def handle_options():
+#     if request.method == "OPTIONS":
+#         response = app.make_default_options_response()
+#         headers = response.headers
+
+#         headers["Access-Control-Allow-Origin"] = "http://localhost:5173"
+#         headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+#         headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+
+#         return response
+
 
 # Initialize OpenAI client
 client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
@@ -37,6 +68,7 @@ try:
 except Exception as e:
     logger.error(f"Error initializing systems: {e}")
     raise e
+
 
 def get_intent(query: str) -> str:
     """Simple intent classification using OpenAI"""
