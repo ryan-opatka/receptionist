@@ -25,7 +25,8 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 CORS(app, resources={r"/api/*": {"origins": "http://localhost:5173"}}, 
      allow_headers=["Content-Type", "Authorization"], 
-     methods=["GET", "POST", "OPTIONS"])
+     methods=["GET", "POST", "OPTIONS"],
+     allow_origins=["http://localhost:5173"])
 
 # @app.before_request
 # def handle_options():
