@@ -3,6 +3,7 @@
 ## Overview
 
 The Receptionist app is an intelligent chatbot that serves Northwestern University Library visitors. Built with a React frontend and Flask backend, it automatically understands and responds to two types of queries:
+
 1. Providing directions within the library building using a graph-based pathfinding system
 2. Answering questions about library information, services, and resources using a RAG (Retrieval-Augmented Generation) model
 
@@ -31,6 +32,7 @@ receptionist/
 ### Prerequisites
 
 Download and install these tools first:
+
 - Node.js & npm: [https://nodejs.org/](https://nodejs.org/)
 - Python 3.8+: [https://www.python.org/](https://www.python.org/)
 - Git: [https://git-scm.com/](https://git-scm.com/)
@@ -38,12 +40,14 @@ Download and install these tools first:
 ### Setup Instructions
 
 1. **Clone the Repository**:
+
 ```bash
 git clone [repository-url]
 cd receptionist
 ```
 
 2. **Frontend Setup**:
+
 ```bash
 # Install all frontend dependencies
 npm install
@@ -52,6 +56,7 @@ npm install
 3. **Backend Setup**:
 
 Virtual Environment (Recommended but Optional):
+
 ```bash
 # Create and activate virtual environment
 python -m venv venv
@@ -64,6 +69,7 @@ source venv/bin/activate
 ```
 
 Why use a virtual environment? (not necessary, recommended.)
+
 - Isolates project dependencies from system Python
 - Prevents conflicts between different project requirements
 - Makes project more portable and reproducible
@@ -71,16 +77,18 @@ Why use a virtual environment? (not necessary, recommended.)
 - Simple to recreate the environment on other machines
 
 Install Dependencies:
+
 ```bash
 # Install all required packages (with or without venv)
-pip install Flask flask-cors nltk networkx matplotlib openai langchain chromadb tiktoken sqlalchemy python-dotenv
+pip install Flask flask-cors nltk networkx matplotlib openai langchain chromadb tiktoken sqlalchemy python-dotenv langchain-community langchain_openai
 
 # Download required NLTK data
 python -c "import nltk; nltk.download('punkt'); nltk.download('averaged_perceptron_tagger'); nltk.download('stopwords')"
 ```
 
 4. **Environment Setup**:
-Create a `.env` file in the backend directory:
+   Create a `.env` file in the backend directory:
+
 ```bash
 OPENAI_API_KEY=your_api_key_here
 ```
@@ -88,12 +96,14 @@ OPENAI_API_KEY=your_api_key_here
 ### Starting the Application
 
 1. **Start the Frontend**:
+
 ```bash
 npm run dev
 # Runs on http://localhost:5173
 ```
 
 2. **Start the Backend**:
+
 ```bash
 cd backend
 python answer.py
@@ -114,6 +124,7 @@ python answer.py
 ## Usage Examples
 
 1. **Direction Queries**:
+
 ```
 "Where is room 101?"
 "How do I get to the study area?"
@@ -121,6 +132,7 @@ python answer.py
 ```
 
 2. **Information Queries**:
+
 ```
 "What are the library hours?"
 "Tell me about printing services"
@@ -128,6 +140,7 @@ python answer.py
 ```
 
 The system automatically determines query type and provides appropriate responses, including:
+
 - Step-by-step directions with interactive maps
 - Detailed information with source citations
 - Clickable links to relevant resources
@@ -135,6 +148,7 @@ The system automatically determines query type and provides appropriate response
 ## Troubleshooting
 
 1. **Installation Issues**:
+
 ```bash
 # Clear npm cache and reinstall
 npm cache clean --force
@@ -146,17 +160,20 @@ deactivate  # if using venv
 pip install -r requirements.txt
 ```
 
-2. **CORS Issues**: 
+2. **CORS Issues**:
+
 - Verify flask-cors is installed
 - Check CORS configuration in answer.py
 - Ensure both servers are running
 
 3. **Connection Problems**:
+
 - Frontend should be on http://localhost:5173
 - Backend should be on http://localhost:5000
 - Check if ports are available
 
 4. **Dependencies Issues**:
+
 ```bash
 # Update all dependencies
 npm update  # for frontend
@@ -166,7 +183,9 @@ pip install --upgrade -r requirements.txt  # for backend
 ## Development
 
 ### Frontend Development
+
 The React frontend uses Vite for:
+
 - Hot Module Replacement (HMR)
 - Fast refresh during development
 - Optimized builds
@@ -180,7 +199,9 @@ npm run build
 ```
 
 ### Backend Development
+
 The Flask backend supports:
+
 - API routing
 - NLTK processing
 - Map generation
@@ -196,7 +217,9 @@ python answer.py
 ## API Documentation
 
 ### POST /api/chat
+
 Accepts JSON with:
+
 ```json
 {
   "message": "user query string",
@@ -211,6 +234,7 @@ Accepts JSON with:
 ```
 
 Returns:
+
 ```json
 {
   "response": "bot response string",
