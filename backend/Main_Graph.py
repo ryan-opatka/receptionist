@@ -1,6 +1,3 @@
-#Main_Graph.py
-
-
 import matplotlib.pyplot as plt
 import math
 import networkx as nx
@@ -8,7 +5,7 @@ from difflib import get_close_matches
 
 class ReceptionistSystem:
     def __init__(self):
-        # Room aliases remain the same as before
+        # Room aliases for common terms and variations
         self.room_aliases = {
             "1south": "southCollaborativeStudyArea",
             "1 south": "southCollaborativeStudyArea",
@@ -30,20 +27,140 @@ class ReceptionistSystem:
             "newspapers": "periodicalsNewspapersReadingRoom",
             "reference": "referenceCollection",
             "circulation": "circulation",
-            "borrowing": "circulation"
+            "borrowing": "circulation",
+            "help desk": "circulation",
+            "front desk": "circulation",
+            "main desk": "circulation",
+            "computers": "johnPMcGowanInformationCommons",
+            "study rooms": "southCollaborativeStudyArea",
+            "group study": "southCollaborativeStudyArea",
+            "quiet reading": "bookNookLeisureReading",
+            "stairs up": "toLevel2",
+            "stairs down": "toLowerLevel",
+            "staff offices": "administration",
+            "recording booth": "vocalBooth"
+        }
+
+        # Area descriptors for lost users
+        self.area_descriptors = {
+            "large open space with computers": ["johnPMcGowanInformationCommons"],
+            "quiet study area with tables": ["southCollaborativeStudyArea", "periodicalsNewspapersReadingRoom"],
+            "near stairs": ["toLevel2", "toLowerLevel", "toCafeBergson"],
+            "near entrance": ["mainEntrance", "southEntrance"],
+            "near bookshelves": ["referenceCollection", "bookNookLeisureReading"],
+            "small rooms": ["projectRoomA", "projectRoomB", "icProjectRoom1134", "vocalBooth"],
+            "service desk": ["circulation", "administration"],
+            "glass walls": ["projectRoomA", "projectRoomB", "icProjectRoom1134"],
+            "main hallway": ["mainEntrance", "circulation", "toCafeBergson"],
+            "computers and printers": ["johnPMcGowanInformationCommons"],
+            "study tables": ["southCollaborativeStudyArea", "periodicalsNewspapersReadingRoom"],
+            "help desk area": ["circulation"],
+            "comfortable seating": ["bookNookLeisureReading"],
+            "staff area": ["personnel", "administration"],
+            "meeting rooms": ["projectRoomA", "projectRoomB"],
+            "recording space": ["vocalBooth"]
+        }
+
+        # Location features and details
+        self.location_features = {
+            "mainEntrance": {
+                "features": ["automatic doors", "security gates", "welcome desk", "building directory"],
+                "nearby": ["information commons", "level 2 stairs"],
+                "identifiers": ["main doors", "security gates", "entrance mat"]
+            },
+            "johnPMcGowanInformationCommons": {
+                "features": ["computer workstations", "large open space", "help desk", "printers"],
+                "nearby": ["main entrance", "project rooms", "vocal booth"],
+                "identifiers": ["rows of computers", "printing station", "help desk"]
+            },
+            "southCollaborativeStudyArea": {
+                "features": ["group study tables", "whiteboard walls", "1South sign", "collaborative space"],
+                "nearby": ["project rooms", "main hallway"],
+                "identifiers": ["1South sign", "study tables", "whiteboards"]
+            },
+            "projectRoomA": {
+                "features": ["glass walls", "conference table", "wall-mounted display", "whiteboard"],
+                "nearby": ["1South study area", "project room B"],
+                "identifiers": ["room number", "glass-walled room", "meeting space"]
+            },
+            "projectRoomB": {
+                "features": ["glass walls", "conference table", "wall-mounted display", "whiteboard"],
+                "nearby": ["1South study area", "project room A"],
+                "identifiers": ["room number", "glass-walled room", "meeting space"]
+            },
+            "icProjectRoom1134": {
+                "features": ["glass walls", "technology setup", "presentation screen"],
+                "nearby": ["information commons", "vocal booth"],
+                "identifiers": ["room 1134", "IC project room", "glass walls"]
+            },
+            "vocalBooth": {
+                "features": ["soundproof walls", "recording equipment", "microphone"],
+                "nearby": ["information commons", "project room 1134"],
+                "identifiers": ["recording booth", "soundproof room"]
+            },
+            "circulation": {
+                "features": ["service desk", "self-checkout machines", "hold shelf"],
+                "nearby": ["main hallway", "café entrance", "1South entrance"],
+                "identifiers": ["main desk", "checkout stations", "help desk"]
+            },
+            "toCafeBergson": {
+                "features": ["staircase", "café signage", "seating area"],
+                "nearby": ["circulation desk", "periodicals"],
+                "identifiers": ["café sign", "upward stairs", "coffee shop entrance"]
+            },
+            "toLowerLevel": {
+                "features": ["staircase", "level signage", "directory"],
+                "nearby": ["book nook", "personnel offices"],
+                "identifiers": ["downward stairs", "lower level sign"]
+            },
+            "bookNookLeisureReading": {
+                "features": ["comfortable seating", "magazine displays", "quiet area"],
+                "nearby": ["lower level stairs", "reference collection"],
+                "identifiers": ["casual seating", "reading nook"]
+            },
+            "administration": {
+                "features": ["staff offices", "administrative suite", "meeting room"],
+                "nearby": ["personnel office", "lower level entrance"],
+                "identifiers": ["admin suite", "staff area"]
+            },
+            "periodicalsNewspapersReadingRoom": {
+                "features": ["newspaper racks", "magazine displays", "study tables", "current periodicals"],
+                "nearby": ["reference collection", "café entrance"],
+                "identifiers": ["newspaper racks", "magazine shelves"]
+            },
+            "referenceCollection": {
+                "features": ["reference books", "study carrels", "quiet area"],
+                "nearby": ["periodicals room", "book nook"],
+                "identifiers": ["reference shelves", "study carrels"]
+            },
+            "personnel": {
+                "features": ["staff offices", "workroom"],
+                "nearby": ["administration", "lower level entrance"],
+                "identifiers": ["staff offices", "personnel sign"]
+            },
+            "toLevel2": {
+                "features": ["staircase", "level signage", "directory"],
+                "nearby": ["main entrance", "information commons"],
+                "identifiers": ["upward stairs", "level 2 sign"]
+            },
+            "southEntrance": {
+                "features": ["entrance doors", "1South signage", "study area entrance"],
+                "nearby": ["circulation desk", "collaborative study area"],
+                "identifiers": ["1South entrance", "study area doors"]
+            }
         }
 
         # Define the main hallway y-coordinate as reference
         HALLWAY_Y = 400
         
-        # Updated coordinates to match the floor plan
+        # Floor plan configuration
         self.floor_plan = {
             "nodes": {
                 # West end
                 "mainEntrance": {"x": 100, "y": HALLWAY_Y, "label": "Main Entrance", "color": "lightgray"},
                 "toLevel2": {"x": 120, "y": HALLWAY_Y - 50, "label": "To Level 2", "color": "lightgray"},
                 
-                # Information Commons area (large area north of hallway)
+                # Information Commons area
                 "johnPMcGowanInformationCommons": {"x": 250, "y": HALLWAY_Y + 100, "label": "Information Commons", "color": "lightgray"},
                 "icProjectRoom1134": {"x": 200, "y": HALLWAY_Y + 150, "label": "IC Project Room 1134", "color": "lightgray"},
                 "vocalBooth": {"x": 300, "y": HALLWAY_Y + 150, "label": "Vocal Booth", "color": "lightgray"},
@@ -51,7 +168,7 @@ class ReceptionistSystem:
                 # Central area
                 "circulation": {"x": 400, "y": HALLWAY_Y + 20, "label": "Circulation (Borrowing)", "color": "lightgray"},
                 
-                # 1South entrance and room
+                # 1South area
                 "southEntrance": {"x": 350, "y": HALLWAY_Y - 20, "label": "1South Entrance", "color": "lightgray"},
                 "southCollaborativeStudyArea": {"x": 350, "y": HALLWAY_Y - 150, "label": "1 South Collaborative Study Area", "color": "lightgray"},
                 "projectRoomB": {"x": 250, "y": HALLWAY_Y - 200, "label": "Project Room B", "color": "lightgray"},
@@ -62,7 +179,7 @@ class ReceptionistSystem:
                 "toLowerLevel": {"x": 500, "y": HALLWAY_Y - 30, "label": "To Lower Level", "color": "lightgray"},
                 "bookNookLeisureReading": {"x": 500, "y": HALLWAY_Y - 100, "label": "Book Nook/Leisure Reading", "color": "lightgray"},
                 
-                # North tower (above Lower Level entrance)
+                # North tower
                 "personnel": {"x": 500, "y": HALLWAY_Y + 100, "label": "Personnel", "color": "lightgray"},
                 "administration": {"x": 500, "y": HALLWAY_Y + 150, "label": "Administration", "color": "lightgray"},
                 
@@ -75,7 +192,7 @@ class ReceptionistSystem:
                 {"from": "mainEntrance", "to": "toLevel2", "weight": 50},
                 {"from": "mainEntrance", "to": "johnPMcGowanInformationCommons", "weight": 150},
                 
-                # Information Commons internal connections
+                # Information Commons connections
                 {"from": "johnPMcGowanInformationCommons", "to": "icProjectRoom1134", "weight": 100},
                 {"from": "johnPMcGowanInformationCommons", "to": "vocalBooth", "weight": 100},
                 
@@ -83,13 +200,13 @@ class ReceptionistSystem:
                 {"from": "mainEntrance", "to": "circulation", "weight": 300},
                 {"from": "circulation", "to": "toCafeBergson", "weight": 100},
                 
-                # 1South area connections
+                # 1South connections
                 {"from": "circulation", "to": "southEntrance", "weight": 50},
                 {"from": "southEntrance", "to": "southCollaborativeStudyArea", "weight": 150},
                 {"from": "southCollaborativeStudyArea", "to": "projectRoomB", "weight": 100},
                 {"from": "southCollaborativeStudyArea", "to": "projectRoomA", "weight": 100},
                 
-                # Central to East connections
+                # East central connections
                 {"from": "circulation", "to": "toLowerLevel", "weight": 100},
                 {"from": "toLowerLevel", "to": "bookNookLeisureReading", "weight": 100},
                 
@@ -103,13 +220,126 @@ class ReceptionistSystem:
             ]
         }
         
-        # Create NetworkX graph for pathfinding
+        # Initialize NetworkX graph for pathfinding
         self.nx_graph = nx.Graph()
         for edge in self.floor_plan["edges"]:
             self.nx_graph.add_edge(edge["from"], edge["to"], weight=edge["weight"])
 
+    def find_user_location(self, description: str, additional_details: str = None) -> dict:
+        """Attempt to determine user's location based on their description."""
+        description = description.lower()
+        potential_locations = {}
+        
+        # First pass: Check for exact room numbers or names
+        for alias, room_id in self.room_aliases.items():
+            if alias in description:
+                return {
+                    "locations": [{
+                        "id": room_id,
+                        "name": self.floor_plan["nodes"][room_id]["label"],
+                        "confidence": 1.0
+                    }],
+                    "needs_clarification": False
+                }
+        
+        # Second pass: Parse area descriptors
+        for descriptor, locations in self.area_descriptors.items():
+            if descriptor in description:
+                for location in locations:
+                    if location not in potential_locations:
+                        potential_locations[location] = 0.0
+                    potential_locations[location] += 0.3
+        
+        # Third pass: Check for specific features
+        for location, details in self.location_features.items():
+            for feature in details["features"]:
+                if feature in description:
+                    if location not in potential_locations:
+                        potential_locations[location] = 0.0
+                    potential_locations[location] += 0.4
+            
+            for nearby in details["nearby"]:
+                if nearby in description:
+                    if location not in potential_locations:
+                        potential_locations[location] = 0.0
+                    potential_locations[location] += 0.2
+        
+        # Sort and format results
+        sorted_locations = sorted(
+            [(k, v) for k, v in potential_locations.items()],
+            key=lambda x: x[1],
+            reverse=True
+        )
+        
+        results = []
+        for location_id, confidence in sorted_locations[:3]:
+            results.append({
+                "id": location_id,
+                "name": self.floor_plan["nodes"][location_id]["label"],
+                "confidence": min(1.0, confidence)
+            })
+        
+        return {
+            "locations": results,
+            "needs_clarification": len(results) > 1 or (results and results[0]["confidence"] < 0.7)
+        }
+
+    def get_clarifying_questions(self, potential_locations: list) -> list:
+        """Generate relevant follow-up questions based on potential locations."""
+        questions = []
+        
+        # Get unique features from potential locations
+        all_features = set()
+        for loc in potential_locations:
+            if loc["id"] in self.location_features:
+                all_features.update(self.location_features[loc["id"]]["features"])
+        
+        # Generate specific questions
+        questions.extend([
+            f"Do you see any of these features: {', '.join(list(all_features)[:3])}?",
+            "Are you near any stairs or elevators?",
+            "Can you see any room numbers or signs?",
+            "Are you in a quiet study area or a more active space?",
+            "Do you see any service desks or help stations nearby?",
+            "Are there computer workstations in your vicinity?"
+        ])
+        
+        return questions
+
+    def handle_lost_user(self, initial_description: str) -> dict:
+        """Main method to handle a lost user scenario."""
+        # First attempt to locate user
+        location_results = self.find_user_location(initial_description)
+        
+        response = {
+            "possible_locations": location_results["locations"],
+            "needs_clarification": location_results["needs_clarification"],
+            "clarifying_questions": [],
+            "directions": []
+        }
+        
+        # If we need more information
+        if location_results["needs_clarification"]:
+            response["clarifying_questions"] = self.get_clarifying_questions(
+                location_results["locations"]
+            )
+        # If we're confident about the location
+        elif location_results["locations"]:
+            start_location = location_results["locations"][0]["id"]
+            response["directions"] = self.get_directions(
+                start_location, 
+                "mainEntrance"  # Default to directions to main entrance
+            )
+            
+            # Highlight the path on the map
+            self.highlight_room(start_location)
+            path = nx.shortest_path(self.nx_graph, start_location, "mainEntrance")
+            self.visualize_map(path)
+        
+        return response
+
     def visualize_map(self, highlight_path=None):
-        """Visualize the floor plan with optional path highlighting"""
+        """Visualize the floor plan with optional path highlighting."""
         plt.figure(figsize=(15, 10))
         
         # Plot edges first
@@ -157,9 +387,8 @@ class ReceptionistSystem:
         
         plt.show()
 
-    # Rest of the methods remain the same as in the previous version
     def find_closest_room_match(self, query):
-        """Find the closest matching room from the query using room aliases"""
+        """Find the closest matching room from the query using room aliases."""
         query = query.lower().strip()
         
         if query in self.room_aliases:
@@ -182,6 +411,7 @@ class ReceptionistSystem:
         return None
 
     def get_directions(self, start, goal):
+        """Generate step-by-step directions between two locations."""
         try:
             path = nx.shortest_path(self.nx_graph, start, goal, weight="weight")
             
@@ -242,13 +472,17 @@ class ReceptionistSystem:
                     directions.append("Look for the staircase on your right leading up")
                 elif next_name == "To Lower Level":
                     directions.append("Look for the staircase on your left leading down")
+                elif "Information Commons" in next_name:
+                    directions.append("Look for the large open area with computer workstations")
+                elif "Circulation" in next_name:
+                    directions.append("Look for the main service desk with self-checkout stations")
 
             return directions
         except nx.NetworkXNoPath:
             return ["No path found between these locations."]
 
     def highlight_room(self, room_id):
-        """Reset all rooms to default color and highlight the specified room"""
+        """Reset all rooms to default color and highlight the specified room."""
         for node in self.floor_plan["nodes"].values():
             node["color"] = "lightgray"
             
@@ -256,10 +490,11 @@ class ReceptionistSystem:
             self.floor_plan["nodes"][room_id]["color"] = "red"
 
     def process_query(self, query):
+        """Process a navigation query and return formatted directions."""
         destination = self.find_closest_room_match(query)
         
         if not destination:
-            return "I'm sorry, I couldn't find that location. Could you please rephrase?"
+            return "I'm sorry, I couldn't find that location. Could you please rephrase or provide more details?"
             
         directions = self.get_directions("mainEntrance", destination)
         self.highlight_room(destination)
@@ -274,21 +509,37 @@ class ReceptionistSystem:
         
         return "\n".join(numbered_directions)
 
-# Example usage
 if __name__ == "__main__":
     receptionist = ReceptionistSystem()
     
-    # Test queries
+    # Test queries for both navigation and lost user scenarios
     test_queries = [
         "How do I get to 1South?",
         "Where is the Information Commons?",
         "I need to find the Reference Collection",
         "How do I get to Project Room A?",
-        "Where is the Circulation desk?"
+        "Where is the Circulation desk?",
+        "I'm lost near some computers",
+        "I see stairs but don't know where I am",
+        "I'm in a quiet area with bookshelves"
     ]
     
-    for query in test_queries:
+    print("Testing Navigation Queries:")
+    for query in test_queries[:5]:
         print(f"\nQuery: {query}")
         response = receptionist.process_query(query)
         print("Directions:")
         print(response)
+    
+    print("\nTesting Lost User Scenarios:")
+    for query in test_queries[5:]:
+        print(f"\nDescription: {query}")
+        response = receptionist.handle_lost_user(query)
+        print("System Response:")
+        if response["needs_clarification"]:
+            print("Possible locations:", [loc["name"] for loc in response["possible_locations"]])
+            print("Clarifying questions:", response["clarifying_questions"])
+        else:
+            print("Identified location:", response["possible_locations"][0]["name"])
+            print("Directions to main entrance:")
+            print("\n".join(response["directions"]))
