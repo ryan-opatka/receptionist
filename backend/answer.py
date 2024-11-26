@@ -23,39 +23,29 @@ logging.basicConfig(level=logging.INFO,
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "http://localhost:5173"}}, 
-     allow_headers=["Content-Type", "Authorization"], 
-     methods=["GET", "POST", "OPTIONS"],
-     allow_origins=["http://localhost:5173"])
+app.config['CORS_HEADERS'] = 'Content-Type'
+# Allow CORS for specific origins
+CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})
 
-# @app.before_request
-# def handle_options():
-#     response = app.make_default_options_response()
-#     headers = response.headers
+# Handle preflight OPTIONS requests
+@app.before_request
+def handle_options_request():
+    if request.method == "OPTIONS":
+        response = app.make_default_options_response()
+        headers = None
+        if 'ACCESS_CONTROL_REQUEST_HEADERS' in request.headers:
+            headers = request.headers['ACCESS_CONTROL_REQUEST_HEADERS']
+        response.headers['Access-Control-Allow-Headers'] = headers
+        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+        return response
 
-#     headers["Access-Control-Allow-Origin"] = "http://localhost:5173"
-#     headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-#     headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
-#     headers["Access-Control-Allow-Credentials"] = "true"
-
-#     return response
-
-
-# CORS(app, origins=["http://localhost:5173"], methods=["GET", "POST", "OPTIONS"],
-#      supports_credentials=True, allow_headers=["Content-Type", "Authorization"])
-
-# @app.before_request
-# def handle_options():
-#     if request.method == "OPTIONS":
-#         response = app.make_default_options_response()
-#         headers = response.headers
-
-#         headers["Access-Control-Allow-Origin"] = "http://localhost:5173"
-#         headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-#         headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
-
-#         return response
-
+# Ensure CORS headers are set for all responses
+@app.after_request
+def after_request(response):
+    response.headers['Access-Control-Allow-Origin'] = 'http://localhost:5173'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+    return response
 
 # Initialize OpenAI client
 client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
