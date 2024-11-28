@@ -17,35 +17,9 @@ from openai import OpenAI
 # Load environment variables
 load_dotenv()
 
-# Setup logging
-logging.basicConfig(level=logging.INFO,
-                   format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
-
 app = Flask(__name__)
-app.config['CORS_HEADERS'] = 'Content-Type'
-# Allow CORS for specific origins
-CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})
-
-# Handle preflight OPTIONS requests
-@app.before_request
-def handle_options_request():
-    if request.method == "OPTIONS":
-        response = app.make_default_options_response()
-        headers = None
-        if 'ACCESS_CONTROL_REQUEST_HEADERS' in request.headers:
-            headers = request.headers['ACCESS_CONTROL_REQUEST_HEADERS']
-        response.headers['Access-Control-Allow-Headers'] = headers
-        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
-        return response
-
-# Ensure CORS headers are set for all responses
-@app.after_request
-def after_request(response):
-    response.headers['Access-Control-Allow-Origin'] = 'http://localhost:5173'
-    response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization'
-    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
-    return response
+# Allow all CORS - we'll lock this down later
+CORS(app)
 
 # Initialize OpenAI client
 client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
@@ -55,17 +29,14 @@ try:
     receptionist = ReceptionistSystem()
     library_rag = LibraryRAG(data_dir="library_data")
     library_rag.initialize()
-    logger.info("All systems initialized successfully")
 except Exception as e:
-    logger.error(f"Error initializing systems: {e}")
+    print(f"Error initializing systems: {e}")
     raise e
 
-
 def get_intent(query: str) -> str:
-    """Simple intent classification using OpenAI"""
     try:
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4o",
             messages=[
                 {"role": "user", 
                  "content": f'Is the user asking for directions? If so respond only with "DIRECTIONS". Otherwise, respond only with "INFORMATION". Query: "{query}"'}
@@ -74,11 +45,10 @@ def get_intent(query: str) -> str:
         )
         return response.choices[0].message.content.strip()
     except Exception as e:
-        logger.error(f"Error in intent classification: {e}")
-        return "INFORMATION"  # Default fallback
+        print(f"Error in intent classification: {e}")
+        return "INFORMATION"
 
 def generate_map_image():
-    """Generate base64 encoded image from the current matplotlib figure"""
     buf = BytesIO()
     plt.savefig(buf, format='png', bbox_inches='tight')
     plt.close()
@@ -89,7 +59,6 @@ def generate_map_image():
 
 @app.route('/api/chat', methods=['POST'])
 def chat():
-    """Handle incoming chat requests"""
     try:
         data = request.json
         user_query = data.get('message', '').strip()
@@ -101,68 +70,47 @@ def chat():
                 'map_image': None
             })
 
-        # Get intent using OpenAI
         intent = get_intent(user_query).upper()
-        logger.info(f"Classified intent: {intent}")
 
-        # Handle directions
         if intent == "DIRECTIONS":
-            try:
-                destination = receptionist.find_closest_room_match(user_query)
-                if not destination:
-                    return jsonify({
-                        'response': "I couldn't find that location. Could you please be more specific?",
-                        'map_image': None,
-                        'intent': 'directions'
-                    })
-
-                directions = receptionist.get_directions("mainEntrance", destination)
-                receptionist.highlight_room(destination)
-                
-                numbered_directions = [f"{i}. {direction}" for i, direction in enumerate(directions, 1)]
-                formatted_directions = "\n".join(numbered_directions)
-                
-                path = nx.shortest_path(receptionist.nx_graph, "mainEntrance", destination)
-                receptionist.visualize_map(path)
-                map_image = generate_map_image()
-                
+            destination = receptionist.find_closest_room_match(user_query)
+            if not destination:
                 return jsonify({
-                    'response': formatted_directions,
-                    'map_image': map_image,
-                    'intent': 'directions'
-                })
-            except Exception as e:
-                logger.error(f"Error handling directions: {e}")
-                return jsonify({
-                    'response': "Sorry, I had trouble getting those directions. Please try again.",
+                    'response': "I couldn't find that location. Could you please be more specific?",
                     'map_image': None,
                     'intent': 'directions'
                 })
 
-        # Handle information
+            directions = receptionist.get_directions("mainEntrance", destination)
+            receptionist.highlight_room(destination)
+            
+            numbered_directions = [f"{i}. {direction}" for i, direction in enumerate(directions, 1)]
+            formatted_directions = "\n".join(numbered_directions)
+            
+            path = nx.shortest_path(receptionist.nx_graph, "mainEntrance", destination)
+            receptionist.visualize_map(path)
+            map_image = generate_map_image()
+            
+            return jsonify({
+                'response': formatted_directions,
+                'map_image': map_image,
+                'intent': 'directions'
+            })
         else:
-            try:
-                rag_chat_history = [(msg['question'], msg['answer']) 
-                                  for msg in chat_history 
-                                  if msg.get('intent') == 'information']
-                
-                result = library_rag.query(user_query, rag_chat_history)
-                
-                return jsonify({
-                    'response': result["answer"],
-                    'map_image': None,
-                    'intent': 'information'
-                })
-            except Exception as e:
-                logger.error(f"Error handling information query: {e}")
-                return jsonify({
-                    'response': "Sorry, I had trouble finding that information. Please try again.",
-                    'map_image': None,
-                    'intent': 'information'
-                })
+            rag_chat_history = [(msg['question'], msg['answer']) 
+                              for msg in chat_history 
+                              if msg.get('intent') == 'information']
+            
+            result = library_rag.query(user_query, rag_chat_history)
+            
+            return jsonify({
+                'response': result["answer"],
+                'map_image': None,
+                'intent': 'information'
+            })
 
     except Exception as e:
-        logger.error(f"Error processing request: {e}")
+        print(f"Error: {e}")
         return jsonify({
             'error': str(e),
             'response': 'An error occurred while processing your request.',
@@ -171,4 +119,5 @@ def chat():
         }), 500
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5050)
+    port = int(os.environ.get('PORT', 8080))
+    app.run(host='0.0.0.0', port=port)
