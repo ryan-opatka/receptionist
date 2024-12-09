@@ -30,6 +30,17 @@ const questionSets = {
       mapImage: null
     },
     {
+      query: "I need to use a printer and a computer. What are my options?",
+      response: `You can use a printer and a computer at multiple locations in the Main University Library:  
+
+- Information Commons (Level 1)**: Offers 31 PCs, 25 iMacs, 3 black & white printers, and 1 color printer.  
+- 4 South (Level 4)**: 1 PC, 1 black & white printer, 1 color printer.  
+- Periodicals & Newspapers Room (Level 1 East)**: 6 iMacs and 1 color printer.  
+
+Would you like details on printing costs or instructions?`,
+      mapImage: null
+    },
+    {
       query: "Where do I go to find 1 South?",
       response: `1. From Main Entrance, continue straight east along the hallway to reach Circulation (Borrowing)
 
