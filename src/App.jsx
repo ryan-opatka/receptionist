@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import './App.css';
 
-// Helper function to parse text and convert URLs to clickable links
+// Helper functions
 const formatMessageText = (text) => {
   return text.split('\n').map((line, i) => {
     if (line.includes('URL:')) {
@@ -9,12 +9,7 @@ const formatMessageText = (text) => {
       return (
         <p key={i}>
           {label && `${label} `}
-          <a 
-            href={url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="message-link"
-          >
+          <a href={url} target="_blank" rel="noopener noreferrer" className="message-link">
             {url}
           </a>
         </p>
@@ -22,6 +17,47 @@ const formatMessageText = (text) => {
     }
     return <p key={i}>{line}</p>;
   });
+};
+
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Question sets based on different paths
+const questionSets = {
+  default: [
+    {
+      query: "Who do I contact if I need help finding materials?",
+      response: "You can contact our research librarians in several ways:\n\n1. Visit the Reference Desk on Level 1\n2. Email library@university.edu\n3. Call (555) 123-4567\n\nOur librarians are available Monday-Friday 9am-5pm.",
+      mapImage: null
+    },
+    {
+      query: "Where do I go to find 1 South?",
+      response: "1 South is located on the first floor of the main library building. Take the main entrance and turn left - you'll see signs directing you to 1 South.",
+      mapImage: "base64EncodedMapImage1"
+    },
+    {
+      query: "Great. Where do I go to get to information commons?",
+      response: "The Information Commons is located on Level 1 of the library. From the main entrance, walk straight ahead and you'll see the open computing area with workstations and collaborative spaces.",
+      mapImage: "base64EncodedMapImage2"
+    }
+  ],
+  information_commons: [
+    {
+      query: "Where is the Information Commons located?",
+      response: "The Information Commons is on Level 1 of the library. Enter through the main entrance and proceed straight ahead.",
+      mapImage: "base64EncodedMapImage3"
+    },
+    {
+      query: "What resources are available in the Information Commons?",
+      response: "The Information Commons offers:\n- Computer workstations\n- Printing services\n- Group study rooms\n- Technical support desk\n- Collaborative workspace\n- Scanning equipment",
+      mapImage: null
+    },
+    {
+      query: "What are the Information Commons hours?",
+      response: "The Information Commons is open:\n\nMonday-Thursday: 24 hours\nFriday: 7am-8pm\nSaturday: 10am-6pm\nSunday: 10am-24 hours",
+      mapImage: null
+    }
+  ],
+  // Add more path-specific question sets as needed
 };
 
 function App() {
@@ -35,32 +71,30 @@ function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [chatHistory, setChatHistory] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [prefilledIndex, setPrefilledIndex] = useState(0);
+  const [currentQuestionSet, setCurrentQuestionSet] = useState([]);
   const messagesEndRef = useRef(null);
 
-  // List of queries to pre-fill the input box for the first four prompts
-  const prefilledQueries = [
-    "Who do I contact if I need help finding materials?",
-    "Where do I go to find 1 South?",
-    "Great. Where do I go to get to information commons?"
-  ];
-
-  const [autoPopulatedIndex, setAutoPopulatedIndex] = useState(0);
+  // Determine which question set to use based on URL path
+  useEffect(() => {
+    const path = window.location.pathname.substring(1); // Remove leading slash
+    const selectedSet = questionSets[path] || questionSets.default;
+    setCurrentQuestionSet(selectedSet);
+    // Reset prefilled index when question set changes
+    setPrefilledIndex(0);
+  }, []);
 
   // Auto-scroll to bottom when messages update
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
   useEffect(() => {
-    scrollToBottom();
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Automatically populate the chat message bar for the first 4 prompts
+  // Automatically populate the chat message bar for prefilled queries
   useEffect(() => {
-    if (autoPopulatedIndex < prefilledQueries.length) {
-      setInput(prefilledQueries[autoPopulatedIndex]);
+    if (prefilledIndex < currentQuestionSet.length) {
+      setInput(currentQuestionSet[prefilledIndex].query);
     }
-  }, [autoPopulatedIndex]);
+  }, [prefilledIndex, currentQuestionSet]);
 
   // Handle message submission
   const handleSendMessage = async () => {
@@ -72,48 +106,86 @@ function App() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('https://library-api-713856591597.us-central1.run.app/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          message: input,
-          chat_history: chatHistory
-        }),
-      });
+      // Check if this is a prefilled query
+      if (prefilledIndex < currentQuestionSet.length) {
+        // Add artificial delay for prefilled responses
+        await delay(200);
+        
+        const prefilledResponse = currentQuestionSet[prefilledIndex];
+        
+        // Add bot response to chat
+        const botMessage = { text: prefilledResponse.response, isBot: true };
+        setMessages((prevMessages) => [...prevMessages, botMessage]);
 
-      const data = await response.json();
+        // Handle map image if provided
+        if (prefilledResponse.mapImage) {
+          setCurrentMapImage(prefilledResponse.mapImage);
+          setMessages((prevMessages) => [
+            ...prevMessages,
+            { 
+              text: "Click 'View Map' below to see the location.", 
+              isBot: true,
+              hasMap: true 
+            }
+          ]);
+        }
 
-      if (data.error) {
-        throw new Error(data.error);
-      }
-
-      // Add bot response to chat
-      const botMessage = { text: data.response, isBot: true };
-      setMessages((prevMessages) => [...prevMessages, botMessage]);
-
-      // Update chat history with intent
-      if (data.intent) {
+        // Update chat history
         setChatHistory((prevHistory) => [
           ...prevHistory,
           {
             question: input,
-            answer: data.response,
-            intent: data.intent
+            answer: prefilledResponse.response,
+            intent: 'prefilled'
           }
         ]);
-      }
 
-      // Handle map image if provided
-      if (data.map_image) {
-        setCurrentMapImage(data.map_image);
-        setMessages((prevMessages) => [
-          ...prevMessages,
-          { 
-            text: "Click 'View Map' below to see the location.", 
-            isBot: true,
-            hasMap: true 
-          }
-        ]);
+        setPrefilledIndex(prevIndex => prevIndex + 1);
+      } else {
+        // Make API call for non-prefilled queries
+        const response = await fetch('https://library-api-713856591597.us-central1.run.app/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            message: input,
+            chat_history: chatHistory
+          }),
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+          throw new Error(data.error);
+        }
+
+        // Add bot response to chat
+        const botMessage = { text: data.response, isBot: true };
+        setMessages((prevMessages) => [...prevMessages, botMessage]);
+
+        // Handle map image if provided
+        if (data.map_image) {
+          setCurrentMapImage(data.map_image);
+          setMessages((prevMessages) => [
+            ...prevMessages,
+            { 
+              text: "Click 'View Map' below to see the location.", 
+              isBot: true,
+              hasMap: true 
+            }
+          ]);
+        }
+
+        // Update chat history
+        if (data.intent) {
+          setChatHistory((prevHistory) => [
+            ...prevHistory,
+            {
+              question: input,
+              answer: data.response,
+              intent: data.intent
+            }
+          ]);
+        }
       }
     } catch (error) {
       console.error('Error:', error);
@@ -124,18 +196,16 @@ function App() {
     } finally {
       setIsLoading(false);
       setInput('');
-      setAutoPopulatedIndex((prevIndex) => prevIndex + 1); // Move to next query after sending the current one
     }
   };
 
-  // Handle enter key press
+  // Rest of the component remains the same...
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !isLoading) {
       handleSendMessage();
     }
   };
 
-  // Handle map view button click
   const handleViewMap = () => {
     if (currentMapImage) {
       setIsModalOpen(true);

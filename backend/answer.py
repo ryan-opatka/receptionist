@@ -22,7 +22,9 @@ app = Flask(__name__)
 CORS(app)
 
 # Initialize OpenAI client
-client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+# client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+
+OpenAI.api_key = os.getenv("OPENAI_API_KEY")
 
 # Initialize systems
 try:
@@ -35,7 +37,8 @@ except Exception as e:
 
 def get_intent(query: str) -> str:
     try:
-        response = client.chat.completions.create(
+        # response = client.chat.completions.create(
+        response = OpenAI.ChatCompletion.create(
             model="gpt-4o",
             messages=[
                 {"role": "user", 
