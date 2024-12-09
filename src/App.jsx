@@ -26,12 +26,20 @@ const questionSets = {
   default: [
     {
       query: "Who do I contact if I need help finding materials?",
-      response: "You can contact our research librarians in several ways:\n\n1. Visit the Reference Desk on Level 1\n2. Email library@university.edu\n3. Call (555) 123-4567\n\nOur librarians are available Monday-Friday 9am-5pm.",
+      response: "For help finding materials at the Northwestern University Main Library, you can contact the library staff at library@northwestern.edu or call 847-491-7658 during operating hours. You can also request assistance at the Circulation Desk. Would you like more information on scheduling a research consultation?",
       mapImage: null
     },
     {
       query: "Where do I go to find 1 South?",
-      response: "1 South is located on the first floor of the main library building. Take the main entrance and turn left - you'll see signs directing you to 1 South.",
+      response: `1. From Main Entrance, continue straight east along the hallway to reach Circulation (Borrowing)
+
+2. Look for the main service desk with self-checkout stations
+
+3. From Circulation (Borrowing), head west and slightly to your left to reach 1South Entrance
+
+4. From 1South Entrance, head straight south to reach 1 South Collaborative Study Area
+
+5. Look for the large '1South' sign above the entrance`,
       mapImage: "base64EncodedMapImage1"
     },
     {
@@ -43,7 +51,9 @@ const questionSets = {
   information_commons: [
     {
       query: "Where is the Information Commons located?",
-      response: "The Information Commons is on Level 1 of the library. Enter through the main entrance and proceed straight ahead.",
+      response: `1. From Main Entrance, head east and slightly to your right to reach Information Commons
+
+2. Look for the large open area with computer workstations`,
       mapImage: "base64EncodedMapImage3"
     },
     {
