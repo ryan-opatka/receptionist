@@ -55,7 +55,9 @@ Would you like details on printing costs or instructions?`,
     },
     {
       query: "Great. Where do I go to get to information commons?",
-      response: "The Information Commons is located on Level 1 of the library. From the main entrance, walk straight ahead and you'll see the open computing area with workstations and collaborative spaces.",
+      response: `1. From Main Entrance, head east and slightly to your right to reach Information Commons
+
+2. Look for the large open area with computer workstations`,
       mapImage: "base64EncodedMapImage2"
     }
   ],
