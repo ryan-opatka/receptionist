@@ -1,5 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import './App.css';
+import periodicals1south from './images/periodicals_1south.png';
+import periodicalsroomb from './images/periodicalsroomb.png';
+import periodicalsmain from './images/periodicalsmain.png';
 
 // Helper functions
 const formatMessageText = (text) => {
@@ -25,7 +28,7 @@ const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 const questionSets = {
   default: [
     {
-      query: "I'm in an area with study tables and whiteboards, but I'm not sure where exactly I am",
+      query: "I'm in an area with study tables and whiteboards, but I'm not sure where exactly I am.",
       response: `Based on your description, you might be in one of these locations:
 
 1. 1 South Collaborative Study Area (most likely)
@@ -46,75 +49,71 @@ To help you better, could you tell me:
 3. Continue past the Circulation desk until you reach the café entrance
 4. From To Café Bergson, continue east to reach Periodicals & Newspapers
 5. Look for the newspaper racks and magazine displays`,
-      mapImage: "base64EncodedMapImage1"
+      mapImage: periodicals1south
     },
     {
       query: "Thanks! Are there computers I can use in Periodicals?",
-      response: "Yes, the Periodicals & Newspapers Reading Room has 6 iMacs available for use, along with a color printer. You'll find them along the wall near the current periodicals section.",
+      response: "Yes, the Periodicals & Newspapers Reading Room has 6 iMacs available for use, along with a color printer. You'll find them along the wall near the current periodicals section. Do you have any questions about printing or computer usage?",
       mapImage: null
-    }
-  ]
+    },
+    {
+            query: "I'm having some trouble signing into the wifi. Can you give me some instructions?",
+            response: `To connect to the Northwestern University Library's wifi, use the "eduroam" network. Log in with your NetID@northwestern.edu and your password. If you encounter any issues, assistance is available through the NUIT Support Center. Are you experiencing any specific issues while trying to connect?`,
+            mapImage: null
+          },
+          {
+            query: "Can you give me instructions for printing??",
+            response: `To print at the Northwestern University Library, you need to use the Northwestern Print system. First, send your print job from a library workstation or your personal device, then release the job from a library printer. A NetID and password are required to log in, and guests must request a guest NetID. Printing is only available over the Northwestern network, not the Guest-Northwestern network. Would you like more details on how to connect to the Northwestern network?`,
+            mapImage: null
+          },
+          {
+            query: "Can you give me directions now from periodicals to Project Room B?",
+            response: `Directions from Periodicals & Newspapers to Project Room B:
+
+1. From Periodicals & Newspapers, continue straight west along the hallway to reach To Café Bergson
+
+2. Look for the staircase on your right leading up
+
+3. From To Café Bergson, head west and slightly to your right to reach Circulation (Borrowing)
+
+4. Look for the main service desk with self-checkout stations
+
+5. From Circulation (Borrowing), head west and slightly to your left to reach 1South Entrance
+
+6. From 1South Entrance, head straight south to reach 1 South Collaborative Study Area
+
+7. Look for the large '1South' sign above the entrance
+
+8. From 1 South Collaborative Study Area, head west and slightly to your left to reach Project Room B
+
+9. Project Room B is located in the southwest corner of 1South`,
+            mapImage: periodicalsroomb
+          },
+        ],
+        periodicals: [
+          {
+            query: "How do I get to the main entrance from where I am?",
+            response: `Here are the directions from Periodicals & Newspapers back to the Main Entrance:
+
+1. From Periodicals & Newspapers, head west along the hallway to reach To Café Bergson
+2. You'll pass the staircase on your left leading up
+3. Head west to reach Circulation (Borrowing)
+4. Look for the main service desk with self-checkout stations
+5. From Circulation (Borrowing), head west reach Main Entrance`,
+            mapImage: periodicalsmain
+          },
+          {
+            query: "What resources are available in the Information Commons?",
+            response: "The Information Commons offers:\n- Computer workstations\n- Printing services\n- Group study rooms\n- Technical support desk\n- Collaborative workspace\n- Scanning equipment",
+            mapImage: null
+          },
+          {
+            query: "What are the Information Commons hours?",
+            response: "The Information Commons is open:\n\nMonday-Thursday: 24 hours\nFriday: 7am-8pm\nSaturday: 10am-6pm\nSunday: 10am-24 hours",
+            mapImage: null
+          }
+        ],
 };
-// const questionSets = {
-//   default: [
-//     {
-//       query: "Who do I contact if I need help finding materials?",
-//       response: "For help finding materials at the Northwestern University Main Library, you can contact the library staff at library@northwestern.edu or call 847-491-7658 during operating hours. You can also request assistance at the Circulation Desk. Would you like more information on scheduling a research consultation?",
-//       mapImage: null
-//     },
-//     {
-//       query: "I need to use a printer and a computer. What are my options?",
-//       response: `You can use a printer and a computer at multiple locations in the Main University Library:  
-
-// - Information Commons (Level 1): Offers 31 PCs, 25 iMacs, 3 black & white printers, and 1 color printer.  
-// - 4 South (Level 4): 1 PC, 1 black & white printer, 1 color printer.  
-// - Periodicals & Newspapers Room (Level 1 East): 6 iMacs and 1 color printer.  
-
-// Would you like details on printing costs or instructions?`,
-//       mapImage: null
-//     },
-//     {
-//       query: "Where do I go to find 1 South?",
-//       response: `1. From Main Entrance, continue straight east along the hallway to reach Circulation (Borrowing)
-
-// 2. Look for the main service desk with self-checkout stations
-
-// 3. From Circulation (Borrowing), head west and slightly to your left to reach 1South Entrance
-
-// 4. From 1South Entrance, head straight south to reach 1 South Collaborative Study Area
-
-// 5. Look for the large '1South' sign above the entrance`,
-//       mapImage: "base64EncodedMapImage1"
-//     },
-//     {
-//       query: "Great. Where do I go to get to information commons?",
-//       response: `1. From Main Entrance, head east and slightly to your right to reach Information Commons
-
-// 2. Look for the large open area with computer workstations`,
-//       mapImage: "base64EncodedMapImage2"
-//     }
-//   ],
-//   information_commons: [
-//     {
-//       query: "Where is the Information Commons located?",
-//       response: `1. From Main Entrance, head east and slightly to your right to reach Information Commons
-
-// 2. Look for the large open area with computer workstations`,
-//       mapImage: "base64EncodedMapImage3"
-//     },
-//     {
-//       query: "What resources are available in the Information Commons?",
-//       response: "The Information Commons offers:\n- Computer workstations\n- Printing services\n- Group study rooms\n- Technical support desk\n- Collaborative workspace\n- Scanning equipment",
-//       mapImage: null
-//     },
-//     {
-//       query: "What are the Information Commons hours?",
-//       response: "The Information Commons is open:\n\nMonday-Thursday: 24 hours\nFriday: 7am-8pm\nSaturday: 10am-6pm\nSunday: 10am-24 hours",
-//       mapImage: null
-//     }
-//   ],
-//   // Add more path-specific question sets as needed
-// };
 
 function App() {
   // State management
@@ -165,7 +164,7 @@ function App() {
       // Check if this is a prefilled query
       if (prefilledIndex < currentQuestionSet.length) {
         // Add artificial delay for prefilled responses
-        await delay(200);
+        await delay(1400);
         
         const prefilledResponse = currentQuestionSet[prefilledIndex];
         
@@ -336,7 +335,7 @@ function App() {
               ×
             </button>
             <img
-              src={`data:image/png;base64,${currentMapImage}`}
+              src={currentMapImage}
               alt="Map visualization"
               className="modal-image"
             />
