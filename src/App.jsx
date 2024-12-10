@@ -25,63 +25,96 @@ const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 const questionSets = {
   default: [
     {
-      query: "Who do I contact if I need help finding materials?",
-      response: "For help finding materials at the Northwestern University Main Library, you can contact the library staff at library@northwestern.edu or call 847-491-7658 during operating hours. You can also request assistance at the Circulation Desk. Would you like more information on scheduling a research consultation?",
+      query: "I'm in an area with study tables and whiteboards, but I'm not sure where exactly I am",
+      response: `Based on your description, you might be in one of these locations:
+
+1. 1 South Collaborative Study Area (most likely)
+2. Periodicals & Newspapers Reading Room
+
+To help you better, could you tell me:
+- Do you see any signs that say "1South"?
+- Are there glass-walled project rooms nearby?
+- Are there computer workstations in your vicinity?`,
       mapImage: null
     },
     {
-      query: "I need to use a printer and a computer. What are my options?",
-      response: `You can use a printer and a computer at multiple locations in the Main University Library:  
+      query: "Yes, I see the 1South sign. I need to get to the Periodicals room.",
+      response: `I can help you get from 1 South to the Periodicals & Newspapers Reading Room:
 
-- Information Commons (Level 1): Offers 31 PCs, 25 iMacs, 3 black & white printers, and 1 color printer.  
-- 4 South (Level 4): 1 PC, 1 black & white printer, 1 color printer.  
-- Periodicals & Newspapers Room (Level 1 East): 6 iMacs and 1 color printer.  
-
-Would you like details on printing costs or instructions?`,
-      mapImage: null
-    },
-    {
-      query: "Where do I go to find 1 South?",
-      response: `1. From Main Entrance, continue straight east along the hallway to reach Circulation (Borrowing)
-
-2. Look for the main service desk with self-checkout stations
-
-3. From Circulation (Borrowing), head west and slightly to your left to reach 1South Entrance
-
-4. From 1South Entrance, head straight south to reach 1 South Collaborative Study Area
-
-5. Look for the large '1South' sign above the entrance`,
+1. From 1 South Collaborative Study Area, head north to reach the 1South Entrance
+2. From 1South Entrance, turn right and head east along the main hallway
+3. Continue past the Circulation desk until you reach the café entrance
+4. From To Café Bergson, continue east to reach Periodicals & Newspapers
+5. Look for the newspaper racks and magazine displays`,
       mapImage: "base64EncodedMapImage1"
     },
     {
-      query: "Great. Where do I go to get to information commons?",
-      response: `1. From Main Entrance, head east and slightly to your right to reach Information Commons
-
-2. Look for the large open area with computer workstations`,
-      mapImage: "base64EncodedMapImage2"
-    }
-  ],
-  information_commons: [
-    {
-      query: "Where is the Information Commons located?",
-      response: `1. From Main Entrance, head east and slightly to your right to reach Information Commons
-
-2. Look for the large open area with computer workstations`,
-      mapImage: "base64EncodedMapImage3"
-    },
-    {
-      query: "What resources are available in the Information Commons?",
-      response: "The Information Commons offers:\n- Computer workstations\n- Printing services\n- Group study rooms\n- Technical support desk\n- Collaborative workspace\n- Scanning equipment",
-      mapImage: null
-    },
-    {
-      query: "What are the Information Commons hours?",
-      response: "The Information Commons is open:\n\nMonday-Thursday: 24 hours\nFriday: 7am-8pm\nSaturday: 10am-6pm\nSunday: 10am-24 hours",
+      query: "Thanks! Are there computers I can use in Periodicals?",
+      response: "Yes, the Periodicals & Newspapers Reading Room has 6 iMacs available for use, along with a color printer. You'll find them along the wall near the current periodicals section.",
       mapImage: null
     }
-  ],
-  // Add more path-specific question sets as needed
+  ]
 };
+// const questionSets = {
+//   default: [
+//     {
+//       query: "Who do I contact if I need help finding materials?",
+//       response: "For help finding materials at the Northwestern University Main Library, you can contact the library staff at library@northwestern.edu or call 847-491-7658 during operating hours. You can also request assistance at the Circulation Desk. Would you like more information on scheduling a research consultation?",
+//       mapImage: null
+//     },
+//     {
+//       query: "I need to use a printer and a computer. What are my options?",
+//       response: `You can use a printer and a computer at multiple locations in the Main University Library:  
+
+// - Information Commons (Level 1): Offers 31 PCs, 25 iMacs, 3 black & white printers, and 1 color printer.  
+// - 4 South (Level 4): 1 PC, 1 black & white printer, 1 color printer.  
+// - Periodicals & Newspapers Room (Level 1 East): 6 iMacs and 1 color printer.  
+
+// Would you like details on printing costs or instructions?`,
+//       mapImage: null
+//     },
+//     {
+//       query: "Where do I go to find 1 South?",
+//       response: `1. From Main Entrance, continue straight east along the hallway to reach Circulation (Borrowing)
+
+// 2. Look for the main service desk with self-checkout stations
+
+// 3. From Circulation (Borrowing), head west and slightly to your left to reach 1South Entrance
+
+// 4. From 1South Entrance, head straight south to reach 1 South Collaborative Study Area
+
+// 5. Look for the large '1South' sign above the entrance`,
+//       mapImage: "base64EncodedMapImage1"
+//     },
+//     {
+//       query: "Great. Where do I go to get to information commons?",
+//       response: `1. From Main Entrance, head east and slightly to your right to reach Information Commons
+
+// 2. Look for the large open area with computer workstations`,
+//       mapImage: "base64EncodedMapImage2"
+//     }
+//   ],
+//   information_commons: [
+//     {
+//       query: "Where is the Information Commons located?",
+//       response: `1. From Main Entrance, head east and slightly to your right to reach Information Commons
+
+// 2. Look for the large open area with computer workstations`,
+//       mapImage: "base64EncodedMapImage3"
+//     },
+//     {
+//       query: "What resources are available in the Information Commons?",
+//       response: "The Information Commons offers:\n- Computer workstations\n- Printing services\n- Group study rooms\n- Technical support desk\n- Collaborative workspace\n- Scanning equipment",
+//       mapImage: null
+//     },
+//     {
+//       query: "What are the Information Commons hours?",
+//       response: "The Information Commons is open:\n\nMonday-Thursday: 24 hours\nFriday: 7am-8pm\nSaturday: 10am-6pm\nSunday: 10am-24 hours",
+//       mapImage: null
+//     }
+//   ],
+//   // Add more path-specific question sets as needed
+// };
 
 function App() {
   // State management
