@@ -52,33 +52,31 @@ Would you like details on printing costs or instructions?`,
 
 5. Look for the large '1South' sign above the entrance`,
       mapImage: "base64EncodedMapImage1"
-    },
-    {
-      query: "Great. Where do I go to get to information commons?",
-      response: `1. From Main Entrance, head east and slightly to your right to reach Information Commons
-
-2. Look for the large open area with computer workstations`,
-      mapImage: "base64EncodedMapImage2"
     }
   ],
-  information_commons: [
-    {
-      query: "Where is the Information Commons located?",
-      response: `1. From Main Entrance, head east and slightly to your right to reach Information Commons
 
-2. Look for the large open area with computer workstations`,
+    one_south: [
+      {
+        query: "Hi! I have an essay to turn in, and I need to print it out. Can you give me some instructions for printing?",
+        response: `To print your essay at the Main University Library:  
+  1. Log in to the Northwestern Print system with your NetID on a library computer or your personal device.  
+  2. Upload your document via the "Web Print" link, choose printing options (black & white or color), and send the job.  
+  3. Release the print job at a library printer by scanning your Wildcard or logging in at the printer.  
+  
+  Do you need help locating a specific printer or accessing the Northwestern Print system?`,
+        mapImage: null
+      },
+    {
+      query: "How do I get back to Main Entrance from where I am?",
+      response: `To return to the Main Entrance from the 1 South Collaborative Study Area:
+
+1. Exit the 1 South Collaborative Study Area by heading north to the 1 South Entrance, marked by the large '1South' sign.
+2. From the 1 South Entrance, proceed east and slightly right to reach the Circulation (Borrowing) area, identifiable by the main service desk with self-checkout stations.
+3. Continue straight west from Circulation (Borrowing) along the hallway to arrive at the Main Entrance.
+
+Would you like assistance with locating any other areas within the Main University Library? `,
       mapImage: "base64EncodedMapImage3"
     },
-    {
-      query: "What resources are available in the Information Commons?",
-      response: "The Information Commons offers:\n- Computer workstations\n- Printing services\n- Group study rooms\n- Technical support desk\n- Collaborative workspace\n- Scanning equipment",
-      mapImage: null
-    },
-    {
-      query: "What are the Information Commons hours?",
-      response: "The Information Commons is open:\n\nMonday-Thursday: 24 hours\nFriday: 7am-8pm\nSaturday: 10am-6pm\nSunday: 10am-24 hours",
-      mapImage: null
-    }
   ],
   // Add more path-specific question sets as needed
 };
@@ -132,7 +130,7 @@ function App() {
       // Check if this is a prefilled query
       if (prefilledIndex < currentQuestionSet.length) {
         // Add artificial delay for prefilled responses
-        await delay(200);
+        await delay(600);
         
         const prefilledResponse = currentQuestionSet[prefilledIndex];
         
