@@ -108,26 +108,21 @@ def chat():
         # Handle directions
         if intent == "DIRECTIONS":
             try:
-                destination = receptionist.find_closest_room_match(user_query)
-                if not destination:
+                # Use natural language processing instead of simple destination lookup
+                directions_response = receptionist.process_natural_language_query(user_query)
+                
+                if "couldn't understand" in directions_response.lower():
                     return jsonify({
-                        'response': "I couldn't find that location. Could you please be more specific?",
+                        'response': directions_response,
                         'map_image': None,
                         'intent': 'directions'
                     })
 
-                directions = receptionist.get_directions("mainEntrance", destination)
-                receptionist.highlight_room(destination)
-                
-                numbered_directions = [f"{i}. {direction}" for i, direction in enumerate(directions, 1)]
-                formatted_directions = "\n".join(numbered_directions)
-                
-                path = nx.shortest_path(receptionist.nx_graph, "mainEntrance", destination)
-                receptionist.visualize_map(path)
+                # Generate map after directions are processed (path will be highlighted by process_natural_language_query)
                 map_image = generate_map_image()
                 
                 return jsonify({
-                    'response': formatted_directions,
+                    'response': directions_response,
                     'map_image': map_image,
                     'intent': 'directions'
                 })

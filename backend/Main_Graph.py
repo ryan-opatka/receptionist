@@ -306,8 +306,8 @@ class ReceptionistSystem:
         
         return questions
 
-    def handle_lost_user(self, initial_description: str) -> dict:
-        """Main method to handle a lost user scenario."""
+    def handle_lost_user(self, initial_description: str, destination: str = None) -> dict:
+        """Main method to handle a lost user scenario and provide directions to a destination."""
         # First attempt to locate user
         location_results = self.find_user_location(initial_description)
         
@@ -323,16 +323,31 @@ class ReceptionistSystem:
             response["clarifying_questions"] = self.get_clarifying_questions(
                 location_results["locations"]
             )
-        # If we're confident about the location
+        # If we're confident about the location and have a destination
+        elif location_results["locations"] and destination:
+            start_location = location_results["locations"][0]["id"]
+            dest_location = self.find_closest_room_match(destination)
+            
+            if dest_location:
+                response["directions"] = self.get_directions(
+                    start_location, 
+                    dest_location
+                )
+                
+                # Highlight the path on the map
+                self.highlight_room(dest_location)
+                path = nx.shortest_path(self.nx_graph, start_location, dest_location)
+                self.visualize_map(path)
+        # If we're confident about location but no destination specified
         elif location_results["locations"]:
             start_location = location_results["locations"][0]["id"]
             response["directions"] = self.get_directions(
                 start_location, 
-                "mainEntrance"  # Default to directions to main entrance
+                "mainEntrance"  # Default to main entrance only if no destination specified
             )
             
             # Highlight the path on the map
-            self.highlight_room(start_location)
+            self.highlight_room("mainEntrance")
             path = nx.shortest_path(self.nx_graph, start_location, "mainEntrance")
             self.visualize_map(path)
         
@@ -389,21 +404,29 @@ class ReceptionistSystem:
 
     def find_closest_room_match(self, query):
         """Find the closest matching room from the query using room aliases."""
+        if not query:
+            return None
+            
         query = query.lower().strip()
         
+        # Direct match in aliases
         if query in self.room_aliases:
             return self.room_aliases[query]
-            
-        possible_matches = []
+        
+        # Look for substring matches
+        longest_match = ""
+        matched_room = None
         for alias, room_id in self.room_aliases.items():
-            if query in alias or alias in query:
-                possible_matches.append(room_id)
+            if alias in query and len(alias) > len(longest_match):
+                longest_match = alias
+                matched_room = room_id
                 
-        if possible_matches:
-            return possible_matches[0]
-            
+        if matched_room:
+            return matched_room
+        
+        # Try fuzzy matching as a last resort
         room_labels = {node["label"].lower(): room_id 
-                      for room_id, node in self.floor_plan["nodes"].items()}
+                    for room_id, node in self.floor_plan["nodes"].items()}
         matches = get_close_matches(query, room_labels.keys(), n=1, cutoff=0.6)
         
         if matches:
@@ -489,17 +512,103 @@ class ReceptionistSystem:
         if room_id in self.floor_plan["nodes"]:
             self.floor_plan["nodes"][room_id]["color"] = "red"
 
-    def process_query(self, query):
-        """Process a navigation query and return formatted directions."""
-        destination = self.find_closest_room_match(query)
+    def process_natural_language_query(self, query: str) -> str:
+        """
+        Process a natural language navigation query.
+        Example inputs:
+        - "How do I get from 1South to Information Commons?"
+        - "Where is the Information Commons from 1South?"
+        - "I'm at circulation, how do I get to periodicals?"
+        """
+        query = query.lower().strip()
+        start_location = None
+        end_location = None
         
-        if not destination:
-            return "I'm sorry, I couldn't find that location. Could you please rephrase or provide more details?"
+        # Common patterns for extracting locations
+        from_patterns = ["from", "at", "in", "near"]
+        to_patterns = ["to", "find", "reach", "get to"]
+        
+        # First try to find the destination (end location)
+        parts = query.split()
+        found_end = False
+        for pattern in to_patterns:
+            if pattern in query:
+                idx = query.index(pattern)
+                end_part = query[idx + len(pattern):].strip()
+                # Look for the longest matching alias
+                longest_match = ""
+                for alias in self.room_aliases.keys():
+                    if alias in end_part and len(alias) > len(longest_match):
+                        longest_match = alias
+                        end_location = self.room_aliases[alias]
+                        found_end = True
+                if found_end:
+                    break
+        
+        # Try to find the starting location
+        found_start = False
+        for pattern in from_patterns:
+            if pattern in query:
+                idx = query.index(pattern)
+                start_part = query[idx + len(pattern):].strip()
+                # Look for the longest matching alias
+                longest_match = ""
+                for alias in self.room_aliases.keys():
+                    if alias in start_part and len(alias) > len(longest_match):
+                        longest_match = alias
+                        start_location = self.room_aliases[alias]
+                        found_start = True
+                if found_start:
+                    break
+        
+        # Debug output
+        print(f"Parsed start location: {start_location}")
+        print(f"Parsed end location: {end_location}")
+        
+        # If we found both locations, use them
+        if start_location and end_location and start_location != end_location:
+            return self.process_query(start_location, end_location)
+        # If we only found destination, use normal processing
+        elif end_location:
+            return self.process_query("mainEntrance", end_location)
+        else:
+            return "I couldn't understand the locations in your query. Please specify where you want to go more clearly."
+
+
+    def process_query(self, start_location, end_location):
+        """
+        Process a navigation query between any two locations and return formatted directions.
+        
+        Args:
+            start_location (str): Starting location query
+            end_location (str): Destination location query
             
-        directions = self.get_directions("mainEntrance", destination)
-        self.highlight_room(destination)
+        Returns:
+            str: Formatted directions or error message
+        """
+        # Find matching rooms for both start and end locations
+        start = self.find_closest_room_match(start_location)
+        destination = self.find_closest_room_match(end_location)
         
-        path = nx.shortest_path(self.nx_graph, "mainEntrance", destination)
+        # Error handling for locations not found
+        error_messages = []
+        if not start:
+            error_messages.append(f"Could not find starting location: '{start_location}'")
+        if not destination:
+            error_messages.append(f"Could not find destination: '{end_location}'")
+        
+        if error_messages:
+            return "\n".join(error_messages) + "\nPlease rephrase or provide more details."
+            
+        if start == destination:
+            return "You are already at your destination!"
+        
+        # Get directions between the two points
+        directions = self.get_directions(start, destination)
+        
+        # Highlight destination and show path on map
+        self.highlight_room(destination)
+        path = nx.shortest_path(self.nx_graph, start, destination)
         self.visualize_map(highlight_path=path)
         
         # Format the directions nicely with step numbers
@@ -507,7 +616,26 @@ class ReceptionistSystem:
         for i, direction in enumerate(directions, 1):
             numbered_directions.append(f"{i}. {direction}")
         
-        return "\n".join(numbered_directions)
+        # Get the actual location names from the floor plan
+        start_name = self.floor_plan['nodes'][start]['label']
+        dest_name = self.floor_plan['nodes'][destination]['label']
+        
+        return "\n".join([
+            f"Directions from {start_name} to {dest_name}:",
+            "",  # Empty line for spacing
+            "\n".join(numbered_directions)
+        ])
+    def get_navigation_options(self):
+        """
+        Returns a list of all available locations for navigation.
+        
+        Returns:
+            list: List of dictionaries containing location IDs and labels
+        """
+        return [
+            {"id": node_id, "name": node_info["label"]}
+            for node_id, node_info in self.floor_plan["nodes"].items()
+        ]
 
 if __name__ == "__main__":
     receptionist = ReceptionistSystem()
