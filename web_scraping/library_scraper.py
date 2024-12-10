@@ -1,4 +1,3 @@
-# library_scraper.py
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
@@ -28,15 +27,14 @@ class LibraryScraper:
         self.user_agent = user_agent
         self.email = email
         
-        # Create timestamp-based directory
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        self.output_dir = self.base_output_dir / self.domain / timestamp
-        
+        # Use lists instead of sets for better URL management
         self.visited_urls: Set[str] = set()
-        self.queue: Set[str] = {start_url}
-        self.robot_parser = RobotFileParser()
+        self.queue: List[str] = [start_url]  # Changed to list for FIFO behavior
+        self.found_urls: Set[str] = set()  # Track all discovered URLs
         
         # Setup
+        self.timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        self.output_dir = self.base_output_dir / self.domain / self.timestamp
         self.setup_directories()
         self.setup_logging()
         
@@ -98,14 +96,48 @@ class LibraryScraper:
             'timestamp': time.time()
         }
         
-    def extract_links(self, soup: BeautifulSoup, base_url: str) -> Set[str]:
-        """Extract valid links"""
-        links = set()
-        for link in soup.find_all('a', href=True):
-            url = urljoin(base_url, link['href'])
-            if urlparse(url).netloc == self.domain:
-                links.add(url)
-        return links
+    def extract_links(self, soup: BeautifulSoup, base_url: str) -> List[str]:
+        """Extract valid links more thoroughly"""
+        new_links = []
+        seen_on_page = set()  # Track unique links on this page
+        
+        # Find all <a> tags
+        for link in soup.find_all(['a', 'area']):  # Include image map links
+            href = link.get('href')
+            if not href:
+                continue
+                
+            try:
+                url = urljoin(base_url, href)
+                parsed = urlparse(url)
+                
+                # Skip invalid URLs and non-HTTP(S) schemes
+                if not parsed.netloc or not parsed.scheme in {'http', 'https'}:
+                    continue
+                    
+                # Only process URLs from the same domain
+                if parsed.netloc != self.domain:
+                    continue
+                    
+                # Skip common non-content URLs
+                if any(pat in parsed.path.lower() for pat in ['.pdf', '.jpg', '.png', '.gif', '.css', '.js']):
+                    continue
+                    
+                # Normalize URL
+                normalized_url = url.split('#')[0].split('?')[0].rstrip('/')
+                
+                # Only add if we haven't seen this URL before
+                if (normalized_url not in seen_on_page and 
+                    normalized_url not in self.visited_urls and 
+                    normalized_url not in self.found_urls):
+                    seen_on_page.add(normalized_url)
+                    new_links.append(normalized_url)
+                    self.found_urls.add(normalized_url)
+                    
+            except Exception as e:
+                self.logger.warning(f"Error processing link {href}: {e}")
+                
+        return new_links
         
     def save_content(self, content: Dict):
         """Save content to file"""
@@ -120,16 +152,17 @@ class LibraryScraper:
             json.dump(content, f, ensure_ascii=False, indent=2)
             
     def scrape(self):
-        """Main scraping logic"""
+        """Main scraping logic with exhaustive link processing"""
         self.start_time = time.time()
         
         while self.queue and len(self.visited_urls) < self.max_pages:
-            url = self.queue.pop()
+            # Get next URL from start of queue (FIFO)
+            url = self.queue.pop(0)
             
             if url in self.visited_urls:
                 continue
                 
-            self.logger.info(f"Scraping: {url}")
+            self.logger.info(f"Scraping: {url} (Queue size: {len(self.queue)}, Visited: {len(self.visited_urls)})")
             
             response = self.get_page(url)
             if not response:
@@ -143,17 +176,25 @@ class LibraryScraper:
             if content:
                 self.save_content(content)
                 
+            # Get new links and add them to the end of the queue
             new_links = self.extract_links(soup, url)
-            self.queue.update(new_links - self.visited_urls)
+            self.queue.extend(new_links)
             
+            # Log progress
+            if len(self.visited_urls) % 10 == 0:
+                self.logger.info(f"Progress: {len(self.visited_urls)} pages visited, {len(self.queue)} URLs in queue")
+                
             time.sleep(self.delay)
             
         self.logger.info(f"Scraping completed. Processed {len(self.visited_urls)} pages.")
+        self.logger.info(f"Total unique URLs found: {len(self.found_urls)}")
         
     def get_scraping_stats(self) -> Dict:
         """Get scraping statistics"""
         stats = {
-            'total_pages': len(self.visited_urls),
+            'total_pages_visited': len(self.visited_urls),
+            'total_urls_found': len(self.found_urls),
+            'urls_remaining': len(self.queue),
             'start_time': getattr(self, 'start_time', time.time()),
             'end_time': time.time(),
             'domain': self.domain,

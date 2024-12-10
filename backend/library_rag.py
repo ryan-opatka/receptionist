@@ -16,8 +16,8 @@ class LibraryRAG:
     def __init__(
         self,
         data_dir: str,
-        chunk_size: int = 1000,
-        chunk_overlap: int = 200
+        chunk_size: int = 500,
+        chunk_overlap: int = 100
     ):
         """
         Initialize the Library RAG system
@@ -150,13 +150,44 @@ class LibraryRAG:
                 temperature=0,
                 model_name="gpt-4o"
             )
-            
+
+            # Create a custom prompt template for better context integration
+            from langchain.prompts import ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate
+
+            system_template = """You are a Northwestern University Library assistant. Use the following pieces of context to answer the user's question. If you don't know something, say so - do not make up answers.
+
+            Here is the library context:
+            {context}
+
+            Answer in a VERY concise manner (3-4 sentences max). Focus on directly relevant information only.
+            For vague queries, ask clarifying questions.
+            Only include information about the Main University Library unless the information is generally applicable.
+            Always end with a relevant follow-up question.
+            """
+
+            human_template = """Question: {question}
+
+            Previous conversation:
+            {chat_history}"""
+
+            messages = [
+                SystemMessagePromptTemplate.from_template(system_template),
+                HumanMessagePromptTemplate.from_template(human_template)
+            ]
+            prompt = ChatPromptTemplate.from_messages(messages)
+
             self.qa_chain = ConversationalRetrievalChain.from_llm(
                 llm=llm,
                 retriever=self.vectorstore.as_retriever(
-                    search_kwargs={"k": 3}
+                    search_type="mmr",
+                    search_kwargs={
+                        "k": 6,
+                        "fetch_k": 12
+                    }
                 ),
-                return_source_documents=True
+                combine_docs_chain_kwargs={"prompt": prompt},
+                return_source_documents=True,
+                verbose=True  # Helps with debugging
             )
             
         except Exception as e:
@@ -178,35 +209,16 @@ class LibraryRAG:
         chat_history = chat_history or []
         
         try:
-            # Create a library-specific prompt
-            formatted_question = f"""
-            Hello! Based on the Northwestern University Library information provided, please answer the following question:
-            {question}
+            response = self.qa_chain({
+                "question": question, 
+                "chat_history": chat_history
+            })
             
-            If the information isn't available in the provided context, please say so.
-            Include relevant details like contact information, or hours.
-            Be VERY VERY concise an only include the most directly relevant and informative information. 3-4 sentencesAT MOST.
-            If you need more context, please ask for it. I STRESS THIS.
-            DO NOT INCLUDE INFO ABOUT ANY LIBRARY OTHER THAN MAIN UNIVERSITY LIBRARY.
-            You are required to ask clarifying questions, ESPECIALLY if the user query is vague. 
-            You should ALWAYS ALWAYS ask a question of some sort at the end of your answer, even if it is just to ask if they would like help with anything else.
-            ALWAYS ASK CLARIFICATION QUESTIONS IF THE USER QUERY IS VAGUE.
-            YOUR QUESTIONS SHOULD ONLY BE EXTREMELY RELEVANT TO THE USER QUERY.
-            """
-            
-            # Get response
-            response = self.qa_chain(
-                {"question": formatted_question, "chat_history": chat_history}
-            )
-            
-            # Format sources
-            sources = []
-            for doc in response.get("source_documents", []):
-                sources.append({
-                    "url": doc.metadata.get("url", ""),
-                    "category": doc.metadata.get("category", ""),
-                    "title": doc.metadata.get("title", "")
-                })
+            sources = [{
+                "url": doc.metadata.get("url", ""),
+                "category": doc.metadata.get("category", ""),
+                "title": doc.metadata.get("title", "")
+            } for doc in response.get("source_documents", [])]
                 
             return {
                 "answer": response["answer"].strip(),

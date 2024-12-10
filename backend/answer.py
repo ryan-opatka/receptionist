@@ -65,7 +65,7 @@ def get_intent(query: str) -> str:
     """Simple intent classification using OpenAI"""
     try:
         response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4o-mini",
             messages=[
                 {"role": "user", 
                  "content": f'Is the user asking for directions? If so respond only with "DIRECTIONS". Otherwise, respond only with "INFORMATION". Query: "{query}"'}

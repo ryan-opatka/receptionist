@@ -8,7 +8,7 @@ def main():
         start_url="https://www.library.northwestern.edu/",
         base_output_dir="library_data",
         delay=2.0,
-        max_pages=50,  # Start with a smaller number for testing
+        max_pages=1000,  # Start with a smaller number for testing
         user_agent="NULibraryInfoBot",
         email="opatka.ryan@email.com"
     )
