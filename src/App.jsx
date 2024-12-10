@@ -198,7 +198,7 @@ function App() {
         setPrefilledIndex(prevIndex => prevIndex + 1);
       } else {
         // Make API call for non-prefilled queries
-        const response = await fetch('https://library-api-713856591597.us-central1.run.app/api/chat', {
+        const response = await fetch('https://receptionist-api-713856591597.us-central1.run.app/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ 
